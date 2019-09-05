@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: SecureLinks
+Bundle-SymbolicName: SecureLinks;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: securelinks.Activator
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.eclipse.fordiac.ide,
+ org.eclipse.fordiac.ide.model,
+ org.eclipse.fordiac.ide.systemmanagement,
+ org.eclipse.fordiac.ide.application
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Automatic-Module-Name: SecureLinks
+Bundle-ActivationPolicy: lazy
+
