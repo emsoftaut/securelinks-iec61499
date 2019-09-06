@@ -36,6 +36,7 @@ public class ConnectionAdapter {
 	    	con.inFB = xmlReader.getDstConnectionFBName(i);
 	    	con.outVariable = xmlReader.getSrcFBDataVariableName(i);
 	    	con.inVariable = xmlReader.getDstFBDataVariableName(i);
+	    	con.connectionComment = xmlReader.getConnectionCommentValue(i);
 	    	
 	    	for(DeviceMappings map : mappings) {
 	    		if(map.from.split("\\.")[1].equals(con.outFB))
@@ -45,7 +46,7 @@ public class ConnectionAdapter {
 	    	}
 
 	    	connections.add(con);
-	    	System.out.println(con.outFB +"."+ con.outVariable+"--->"+con.inFB+"."+ con.inVariable);
+	    	//System.out.println(con.outFB +"."+ con.outVariable+"--->"+con.inFB+"."+ con.inVariable);
 	    }
 		    
 		return connections;
@@ -76,4 +77,7 @@ public class ConnectionAdapter {
 		return interDevConns;
 	}
 	
+	public void UpdateConnections(List<Connection> conList) {
+		//Yahan say shuru karna hai.
+	}
 }

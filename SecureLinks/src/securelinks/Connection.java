@@ -8,4 +8,6 @@ public class Connection {
 	public String outFB;
 	public String outVariable;
 	public String outFBDevice;
+	
+	public String connectionComment;
 }

@@ -33,6 +33,7 @@ public class SysFileReader {
 	private static final String A_NAME = "Name";
 	private static final String A_FROM = "From";
 	private static final String A_TO = "To";
+	private static final String A_COMMENT = "Comment";
 	
 	
 	private String sysFile = null;
@@ -75,6 +76,12 @@ public class SysFileReader {
 		}
 	}
 	
+	public void sysFileSave() {
+		if(this.system != null) {
+			//TO-DO
+		}
+	}
+	
 	public int getApplicationDataConnetionsCount() {
 		Element app = (Element)getSelectedApplication(this.selectedApplication);
 		Element dataContag = (Element)app.getElementsByTagName(E_DATA_CONNECTIONS).item(0);
@@ -109,6 +116,10 @@ public class SysFileReader {
 			}
 		}
 		return application;
+	}
+	
+	public String getConnectionCommentValue(int index) {
+		return getApplicationDataConnetion(index).getAttribute(A_COMMENT);
 	}
 	
 	private String getSrcAttributeValue(int index) {
