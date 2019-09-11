@@ -18,7 +18,7 @@ public class TestExecute {
 		UIController uiController = UIController.getInstance(sysFileAbsolutePath, selectedApp);
 		uiController.loadSecureLinkGUI(null);
 
-		uiController.SaveConnections();
+		//uiController.SaveConnections();
 
 	}
 

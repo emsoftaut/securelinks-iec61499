@@ -9,6 +9,10 @@ import javax.swing.text.StyledEditorKit.ForegroundAction;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -20,7 +24,7 @@ import org.xml.sax.SAXException;
  * This class reads the .sys xml file for a system. 
  * For now, it only supports 4DIAC 1.10.3 or the versions that use HOLOBLOC DTD  
  */
-public class SysFileReader {
+public class SysFileOperator {
 	
 	private static final NullPointerException NullPointerException = null;
 	private static final String E_DATA_CONNECTIONS = "DataConnections";
@@ -35,9 +39,8 @@ public class SysFileReader {
 	private static final String A_TO = "To";
 	private static final String A_COMMENT = "Comment";
 	
-	
-	private String sysFile = null;
 	private Document system = null;
+	private String sysFile = null;
 	private String selectedApplication = null;
 	
 	
@@ -61,7 +64,7 @@ public class SysFileReader {
 		factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
 	}
 	
-	public SysFileReader(String sysFile, String application ) {
+	public SysFileOperator(String sysFile, String application ) {
 		try {
 			this.sysFile = sysFile;
 			this.selectedApplication =  application;
@@ -84,26 +87,26 @@ public class SysFileReader {
 	
 	public int getApplicationDataConnetionsCount() {
 		Element app = (Element)getSelectedApplication(this.selectedApplication);
-		Element dataContag = (Element)app.getElementsByTagName(E_DATA_CONNECTIONS).item(0);
+		Element dataContag = (Element)app.getElementsByTagName(E_DATA_CONNECTIONS).item(0); //because this is only element
 		NodeList nList = dataContag.getElementsByTagName(E_CONNECTION);
 		return nList.getLength();
 	}
 	
-	public Element getApplicationDataConnetion(int index) {
+	private Element getApplicationDataConnetion(int index) {
 		Element app = (Element)getSelectedApplication(this.selectedApplication);
 		Element dataContag = (Element)app.getElementsByTagName(E_DATA_CONNECTIONS).item(0);
 		Element datCon = (Element) dataContag.getElementsByTagName(E_CONNECTION).item(index);
 		return datCon;
 	}
 	
-	public NodeList getApplicationDataConnetions() {
+	private NodeList getApplicationDataConnetions() {
 		Element app = (Element)getSelectedApplication(this.selectedApplication);
 		Element dataContag = (Element)app.getElementsByTagName(E_DATA_CONNECTIONS).item(0);
 		NodeList nList = dataContag.getElementsByTagName(E_CONNECTION);
 		return nList;
 	}
 	
-	public Element getSelectedApplication(String selectedApplication) {
+	private Element getSelectedApplication(String selectedApplication) {
 		Element application = null;
 		Element root = system.getDocumentElement();
 		NodeList nList = root.getElementsByTagName(E_APPLICATION);
@@ -120,6 +123,10 @@ public class SysFileReader {
 	
 	public String getConnectionCommentValue(int index) {
 		return getApplicationDataConnetion(index).getAttribute(A_COMMENT);
+	}
+	
+	public void setConnectionCommentValue(int index, String val) {
+		 getApplicationDataConnetion(index).setAttribute(A_COMMENT, val);
 	}
 	
 	private String getSrcAttributeValue(int index) {
@@ -181,4 +188,17 @@ public class SysFileReader {
 		return to;
 	}
 	
+	public void saveSysFile() {
+		try {
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			Transformer transformer = transformerFactory.newTransformer();
+			if(system != null) {
+				DOMSource source = new DOMSource(this.system);
+				StreamResult result = new StreamResult(new File(this.sysFile));
+				transformer.transform(source, result);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }

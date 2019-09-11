@@ -1,52 +1,21 @@
 package ui;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Image;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.GroupLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
-import javax.swing.plaf.nimbus.NimbusStyle;
 
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 
-import javafx.geometry.Bounds;
-import javafx.geometry.Insets;
-import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.TilePane;
-import javafx.scene.layout.VBox;
-import javafx.scene.shape.Line;
 import securelinks.Connection;
 import securelinks.ConnectionAdapter;
+import slib.SlibHandler;
+import slib.Compiler;
 
 public class UIController {
 
-	private String slString;
 	private static String sysFile;
 	private static String selectedApp;
-	private static List<Connection> conList;
+	private List<Connection> conList;
 	private ConnectionAdapter conAdpt;
 	
 	private static UIController instance;
@@ -80,17 +49,25 @@ public class UIController {
 		}
 	}
 	
-	public static List<Connection> getUpdatedConnectionListFromUI() {
+	public List<Connection> getUpdatedConnectionListFromUI() {
 		return conList;
 	}
 	
-	public static void setUpdatedConnectionListFromUI(List<Connection> conListp) {
+	public void setUpdatedConnectionListFromUI(List<Connection> conListp) {
 		conList = new ArrayList<Connection>(conListp);
 	}
 	
 	public void SaveConnections() {
 		List<Connection> conList = getUpdatedConnectionListFromUI();
 		conAdpt.UpdateConnections(conList);
+	}
+	
+	public void compileAction(Connection con) {
+		
+		if(conAdpt.isValidSecureLink(con)) {
+			Compiler compilerObj = new Compiler(con);
+			compilerObj.compile();
+		}
 	}
 	
 }

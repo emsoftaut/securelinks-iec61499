@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<FBN>
+	<property>
+		<in FBdef="SHA1.fbt" Var="sha_in.data" Vartype="Byte"/>
+		<out FBdef="SHA1.fbt" Var="sha_out.data" Vartype="Byte" />
+		<params>
+			<var name="sha_in.datalen" Vartype="INT" />
+			<var name="sha_out.datalen" Vartype="INT" />
+			<var name="sha_in.QI" Vartype="BOOL" />
+			<var name="sha_out.QI" Vartype="BOOL" />
+			<var name="sha_in.ID" Vartype="WSTRING" />
+			<var name="sha_out.ID" Vartype="WSTRING" />
+		</params>
+	</property>
+	<Application Comment="" Name="SHA_FBN">
+		<SubAppNetwork>
+		  <FB Comment="" Name="sha_in" Type="SHA1" x="1500.0" y="1100.0"/>
+		  <FB Comment="" Name="sha_out" Type="SHA1" x="3900.0" y="1100.0"/>
+		  <FB Comment="" Name="pub" Type="PUBLISH_1" x="2200.0" y="1100.0"/>
+		  <FB Comment="" Name="sub" Type="SUBSCRIBE_1" x="3200.0" y="1100.0"/>
+		  <EventConnections>
+			<Connection Comment="" Destination="pub.REQ" Source="sha_in.RSP" dx1="160.0"/>
+			<Connection Comment="" Destination="pub.INIT" Source="sha_in.INITO"/>
+			<Connection Comment="" Destination="sha_out.FIN" Source="sub.IND" dx1="120.0"/>
+			<Connection Comment="" Destination="sha_out.INIT" Source="sub.INITO"/>
+		  </EventConnections>
+		  <DataConnections>
+			<Connection Comment="" Destination="pub.SD_1" Source="sha_in.out" dx1="160.0"/>
+			<Connection Comment="" Destination="sha_out.data" Source="sub.RD_1" dx1="120.0"/>
+		  </DataConnections>
+		</SubAppNetwork>
+	</Application>
+</FBN>

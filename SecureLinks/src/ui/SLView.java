@@ -5,9 +5,11 @@ import java.awt.BorderLayout;
 import javax.swing.JDialog;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.osgi.framework.Bundle;
 
@@ -23,6 +25,7 @@ import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -44,9 +47,6 @@ public class SLView extends JDialog {
 	private static final String TITLE = "Secure Links for IEC 61499";
 	private String sysFile;
 	private String selectedApp;
-	private String slString;
-	private JPanel mainPanel;
-	
 	private List<Connection> conList;
 	
 	public SLView(String sysFile, String selectedApp, Shell shell) throws NullPointerException {
@@ -70,7 +70,7 @@ public class SLView extends JDialog {
 		lblApplicationName.setFont(new Font("Calibri", Font.PLAIN, 16));
 		panelTopPanel.add(lblApplicationName);
 		
-		JPanel panelCenter = new JPanel();
+		JPanel panelCenter = new JPanel(); 
 		getContentPane().add(panelCenter, BorderLayout.CENTER);
 		panelCenter.setLayout(new BoxLayout(panelCenter, BoxLayout.Y_AXIS));
 
@@ -90,12 +90,33 @@ public class SLView extends JDialog {
 		
 		loadConnections(panelCenter);
 		
-		addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent e) {
-		        UIController.setUpdatedConnectionListFromUI(((SLView)e.getSource()).conList);
-		    }
+		JPanel panelBottom = new JPanel();
+		getContentPane().add(panelBottom, BorderLayout.SOUTH);
+		
+		JButton btnSave = new JButton("Save");
+		btnSave.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				saveButtonHandler(e);
+			}
 		});
+		panelBottom.add(btnSave);
+		
+		JButton btnCompile = new JButton("Compile");
+		btnCompile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				compile(e);
+			}
+		});
+		panelBottom.add(btnCompile);
+		
+		JButton btnClose = new JButton("Close without saving");
+		btnClose.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+			}
+		});
+		panelBottom.add(btnClose);
+		
 	}
 	
 	
@@ -162,7 +183,7 @@ public class SLView extends JDialog {
 		
 		Bundle bundle = Platform.getBundle("SecureLinks");	
 		if(bundle == null) //check if plugin is loaded
-			wPic = ImageIO.read(this.getClass().getResource("/functionblockout.png"));
+			wPic = ImageIO.read(this.getClass().getResource("/functionblockout.png")); // Written only because of testing as a normal java application  
 		else {
 			wPic = ImageIO.read(bundle.getResource("resources/functionblockout.png"));
 		}
@@ -182,7 +203,7 @@ public class SLView extends JDialog {
 	
 		Bundle bundle = Platform.getBundle("SecureLinks");	
 		if(bundle == null) //check if plugin is loaded
-			wPic = ImageIO.read(this.getClass().getResource("/functionblockout.png"));
+			wPic = ImageIO.read(this.getClass().getResource("/functionblockout.png")); // Written only because of testing as a normal java application  
 		else {
 			wPic = ImageIO.read(bundle.getResource("resources/functionblockout.png"));
 		}
@@ -203,7 +224,7 @@ public class SLView extends JDialog {
 			
 		Bundle bundle = Platform.getBundle("SecureLinks");	
 		if(bundle == null) //check if plugin is loaded
-			addbtn = ImageIO.read(this.getClass().getResource("/addbutton.png"));
+			addbtn = ImageIO.read(this.getClass().getResource("/addbutton.png")); // Written only because of testing as a normal java application  
 		else {
 			addbtn = ImageIO.read(bundle.getResource("resources/addbutton.png"));
 		}
@@ -220,8 +241,8 @@ public class SLView extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				String result = (String) JOptionPane.showInputDialog(panelCon, "Secure link annotations (Starts with @SL) ", 
 						"Add/Exit Secure Link", JOptionPane.PLAIN_MESSAGE, null, null, con.connectionComment);
-				if(result != null)
-					con.connectionComment = result;
+				if(result != null )
+						con.connectionComment = result;
 			}
 		});
 		
@@ -232,4 +253,51 @@ public class SLView extends JDialog {
 		return conList;
 	}
 
+	private void saveButtonHandler(ActionEvent e) {
+		
+		boolean validSecureLinkString = true;
+		Connection errCon =  null; // erroneous connection
+		
+		try {
+			UIController con = UIController.getInstance(sysFile, selectedApp);
+			
+			for(Connection c : conList) {
+				if(!c.connectionComment.isEmpty())
+					if(!Pattern.compile("@[sS][lL]\\s*\\((\\s*\\w*\\s*,\\s*\\w*\\s*,)\\s*\\w+\\s*\\)"). //Regex
+							matcher(c.connectionComment).matches()) {
+						validSecureLinkString = false;
+						errCon = c;
+						break;
+					}
+			}
+			
+			if(validSecureLinkString) {
+				con.setUpdatedConnectionListFromUI(conList);
+				con.SaveConnections();
+				JOptionPane.showMessageDialog(((Component)e.getSource()).getParent().getParent(), 
+						"Secure Links saved", 
+						"Operation done", 
+						JOptionPane.INFORMATION_MESSAGE); 
+			}
+			else {
+				JOptionPane.showMessageDialog(((Component)e.getSource()).getParent().getParent(), 
+						"Secure Links not valid for connection " + errCon.outFB + "." + errCon.outVariable + "--->" + errCon.inFB + "." + errCon.inVariable +
+						System.lineSeparator() + "Secure Link format: @SL(<req>,<fbn>, <args...>|null)",
+						"Secure Links not valid",  
+						JOptionPane.ERROR_MESSAGE);
+			}
+				
+		}
+		catch (Exception exp) {
+			JOptionPane.showMessageDialog(null, 
+					exp.getMessage(),
+					"Something went wrong!!!", 
+					JOptionPane.ERROR_MESSAGE);
+		}
+	}
+	
+	private void compile(ActionEvent e) {
+		UIController con = UIController.getInstance(sysFile, selectedApp);
+		con.compileAction(conList.get(0));
+	}
 }
