@@ -134,11 +134,11 @@ public class SLView extends JDialog {
 				Connection con = conList.get(i);
 				
 				JLabel labelFBOut = new JLabel();
-				labelFBOut.setText(con.outFB + "." + con.outVariable);
+				labelFBOut.setText(con.getSourceFB() + "." + con.getSourceVariable());
 				labelFBOut.setFont(new Font("Calibri", Font.BOLD, 12));
 				JLabel labelFBIn = new JLabel();
 				labelFBIn.setFont(new Font("Calibri", Font.BOLD, 12));
-				labelFBIn.setText(con.inFB + "." + con.inVariable);
+				labelFBIn.setText(con.getDestinationFB() + "." + con.getDestinationVariable());
 				JLabel labelArrow = new JLabel("---------------------------------->");
 				labelArrow.setForeground(Color.RED);
 				labelArrow.setFont(new Font("Calibri", Font.BOLD, 16));
@@ -240,9 +240,9 @@ public class SLView extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String result = (String) JOptionPane.showInputDialog(panelCon, "Secure link annotations (Starts with @SL) ", 
-						"Add/Exit Secure Link", JOptionPane.PLAIN_MESSAGE, null, null, con.connectionComment);
+						"Add/Exit Secure Link", JOptionPane.PLAIN_MESSAGE, null, null, con.getConnectionComment());
 				if(result != null )
-						con.connectionComment = result;
+						con.setConnectionComment(result);
 			}
 		});
 		
@@ -262,9 +262,9 @@ public class SLView extends JDialog {
 			UIController con = UIController.getInstance(sysFile, selectedApp);
 			
 			for(Connection c : conList) {
-				if(!c.connectionComment.isEmpty())
+				if(!c.getConnectionComment().isEmpty())
 					if(!Pattern.compile("@[sS][lL]\\s*\\((\\s*\\w*\\s*,\\s*\\w*\\s*,)\\s*\\w+\\s*\\)"). //Regex
-							matcher(c.connectionComment).matches()) {
+							matcher(c.getConnectionComment()).matches()) {
 						validSecureLinkString = false;
 						errCon = c;
 						break;
@@ -281,7 +281,8 @@ public class SLView extends JDialog {
 			}
 			else {
 				JOptionPane.showMessageDialog(((Component)e.getSource()).getParent().getParent(), 
-						"Secure Links not valid for connection " + errCon.outFB + "." + errCon.outVariable + "--->" + errCon.inFB + "." + errCon.inVariable +
+						"Secure Links not valid for connection " + errCon.getSourceFB() + "." + errCon.getSourceVariable() + "--->" 
+																			+ errCon.getDestinationFB() + "." + errCon.getDestinationVariable() +
 						System.lineSeparator() + "Secure Link format: @SL(<req>,<fbn>, <args...>|null)",
 						"Secure Links not valid",  
 						JOptionPane.ERROR_MESSAGE);
@@ -297,7 +298,16 @@ public class SLView extends JDialog {
 	}
 	
 	private void compile(ActionEvent e) {
-		UIController con = UIController.getInstance(sysFile, selectedApp);
-		con.compileAction(conList.get(0));
+		
+		try {
+			UIController con = UIController.getInstance(sysFile, selectedApp);
+			con.compileAction(conList.get(0));
+		} catch (Exception e2) {
+			JOptionPane.showMessageDialog(null, 
+					e2.getMessage(),
+					"Something went wrong!!!", 
+					JOptionPane.ERROR_MESSAGE);
+		}
+
 	}
 }

@@ -35,17 +35,17 @@ public class ConnectionAdapter {
 		
 		for(int i = 0; i < numDataConnections; i++) {
 			Connection con = new Connection();
-	    	con.outFB = sysReaderWriter.getSrcConnectionFBName(i);
-	    	con.inFB = sysReaderWriter.getDstConnectionFBName(i);
-	    	con.outVariable = sysReaderWriter.getSrcFBDataVariableName(i);
-	    	con.inVariable = sysReaderWriter.getDstFBDataVariableName(i);
-	    	con.connectionComment = sysReaderWriter.getConnectionCommentValue(i);
+	    	con.setSourceFB(sysReaderWriter.getSrcConnectionFBName(i));
+	    	con.setDestinationeFB(sysReaderWriter.getDstConnectionFBName(i));
+	    	con.setSourceVariable(sysReaderWriter.getSrcFBDataVariableName(i));
+	    	con.setDestinationVariable(sysReaderWriter.getDstFBDataVariableName(i));
+	    	con.setConnectionComment(sysReaderWriter.getConnectionCommentValue(i));
 	    	
 	    	for(DeviceMappings map : mappings) {
-	    		if(map.from.split("\\.")[1].equals(con.outFB))
-	    			con.outFBDevice = map.to.split("\\.")[0];
-	    		if(map.from.split("\\.")[1].equals(con.inFB))
-	    			con.inFBDevice = map.to.split("\\.")[0];
+	    		if(map.from.split("\\.")[1].equals(con.getSourceFB()))
+	    			con.setSourceFBDevice(map.to.split("\\.")[0]);
+	    		if(map.from.split("\\.")[1].equals(con.getDestinationFB()))
+	    			con.setDestinationFBDevice(map.to.split("\\.")[0]);
 	    	}
 
 	    	connections.add(con);
@@ -74,7 +74,7 @@ public class ConnectionAdapter {
 		List <Connection> connections = getDataConnections();
 		List <Connection> interDevConns = new ArrayList<Connection>();
 		for(Connection con : connections) {
-			if(!con.outFBDevice.equals(con.inFBDevice))
+			if(!con.getSourceFBDevice().equals(con.getDestinationFBDevice()))
 				interDevConns.add(con);
 		}
 		return interDevConns;
@@ -89,9 +89,9 @@ public class ConnectionAdapter {
 		for(int i = 0; i < sysFileCons.size(); i++) {
 			Connection sysFileCon = sysFileCons.get(i);
 			Connection updatedCon = conList.get(i);
-			if(sysFileCon.outFB.equals(updatedCon.outFB) &&
-					sysFileCon.inFB.equals(updatedCon.inFB))	 {
-				sysReaderWriter.setConnectionCommentValue(i, updatedCon.connectionComment);
+			if(sysFileCon.getSourceFB().equals(updatedCon.getSourceFB()) &&
+					sysFileCon.getDestinationFB().equals(updatedCon.getDestinationFB()))	 {
+				sysReaderWriter.setConnectionCommentValue(i, updatedCon.getConnectionComment());
 			}
 		}
 		
@@ -99,7 +99,7 @@ public class ConnectionAdapter {
 	}
 	
 	public boolean isValidSecureLink(Connection c) {
-		if(Pattern.compile(SECURE_LINK_REGEX).matcher(c.connectionComment).find()) 
+		if(Pattern.compile(SECURE_LINK_REGEX).matcher(c.getConnectionComment()).find()) 
 			return true;
 		else
 			return false;

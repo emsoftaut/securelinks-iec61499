@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<FBN>
+	<meta Name="SHA1">
+		<in FBdef="SHA1.fbt" Var="slib_sha_in.data" Vartype="Byte"/>
+		<out FBdef="SHA1.fbt" Var="slib_sha_out.data" Vartype="Byte" />
+		<params>
+			<var Name="slib_sha_in.datalen"/>
+			<var Name="slib_sha_in.QI"/>
+			<var Name="slib_sha_in.ID"/>
+			<var Name="slib_sha_out.datalen"/>
+			<var Name="slib_sha_out.QI"/>
+			<var Name="slib_sha_out.ID"/>
+		</params>
+		<mapping>
+			<deviceLeft>
+				<FB Name="slib_sha_in"/>
+				<FB Name="slib_pub"/>
+			</deviceLeft>
+			<deviceRight>
+				<FB Name="slib_sha_out"/>
+				<FB Name="slib_sub"/>
+			</deviceRight>
+		</mapping>
+	</meta>
+	<Application Comment="">
+		<SubAppNetwork>
+		  <FB Comment="" Name="slib_sha_in" Type="SHA1" x="1500.0" y="1100.0"/>
+		  <FB Comment="" Name="slib_sha_out" Type="SHA1" x="3900.0" y="1100.0"/>
+		  <FB Comment="" Name="slib_pub" Type="PUBLISH_1" x="2200.0" y="1100.0"/>
+		  <FB Comment="" Name="slib_sub" Type="SUBSCRIBE_1" x="3200.0" y="1100.0"/>
+		  <EventConnections>
+			<Connection Comment="" Destination="slib_pub.REQ" Source="slib_sha_in.RSP" dx1="160.0"/>
+			<Connection Comment="" Destination="slib_pub.INIT" Source="slib_sha_in.INITO"/>
+			<Connection Comment="" Destination="slib_sha_out.FIN" Source="slib_sub.IND" dx1="120.0"/>
+			<Connection Comment="" Destination="slib_sha_out.INIT" Source="slib_sub.INITO"/>
+		  </EventConnections>
+		  <DataConnections>
+			<Connection Comment="" Destination="slib_pub.SD_1" Source="slib_sha_in.out" dx1="160.0"/>
+			<Connection Comment="" Destination="slib_sha_out.data" Source="slib_sub.RD_1" dx1="120.0"/>
+		  </DataConnections>
+		</SubAppNetwork>
+	</Application>
+</FBN>

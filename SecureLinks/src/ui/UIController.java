@@ -8,7 +8,6 @@ import org.eclipse.ui.IWorkbenchWindow;
 
 import securelinks.Connection;
 import securelinks.ConnectionAdapter;
-import slib.SlibHandler;
 import slib.Compiler;
 
 public class UIController {
@@ -62,7 +61,7 @@ public class UIController {
 		conAdpt.UpdateConnections(conList);
 	}
 	
-	public void compileAction(Connection con) {
+	public void compileAction(Connection con) throws Exception {
 		
 		if(conAdpt.isValidSecureLink(con)) {
 			Compiler compilerObj = new Compiler(con);
