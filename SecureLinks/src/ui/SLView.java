@@ -8,6 +8,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
@@ -119,7 +120,6 @@ public class SLView extends JDialog {
 		
 	}
 	
-	
 	private void loadConnections(JPanel panel) {
 		UIController controller = UIController.getInstance(this.sysFile, this.selectedApp);
 		this.conList = controller.getConnectionList();
@@ -171,7 +171,7 @@ public class SLView extends JDialog {
 			}
 		}
 	    catch (Exception e) {
-	    	JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+	    	JOptionPane.showMessageDialog(null, e.getClass().toString(), "Error", JOptionPane.ERROR_MESSAGE);
 	    }
 	}
 	
@@ -181,7 +181,7 @@ public class SLView extends JDialog {
 		Box boxOutFB = new Box(BoxLayout.X_AXIS);
 		//boxOutFB.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 		
-		Bundle bundle = Platform.getBundle("SecureLinks");	
+		Bundle bundle = getBundle();
 		if(bundle == null) //check if plugin is loaded
 			wPic = ImageIO.read(this.getClass().getResource("/functionblockout.png")); // Written only because of testing as a normal java application  
 		else {
@@ -201,7 +201,7 @@ public class SLView extends JDialog {
 		BufferedImage wPic = null;
 		Box boxInFB = new Box(BoxLayout.X_AXIS);
 	
-		Bundle bundle = Platform.getBundle("SecureLinks");	
+		Bundle bundle = getBundle();	
 		if(bundle == null) //check if plugin is loaded
 			wPic = ImageIO.read(this.getClass().getResource("/functionblockout.png")); // Written only because of testing as a normal java application  
 		else {
@@ -222,7 +222,7 @@ public class SLView extends JDialog {
 		Image addbtn = null;
 		JButton buttonAdd = new JButton();
 			
-		Bundle bundle = Platform.getBundle("SecureLinks");	
+		Bundle bundle = getBundle();
 		if(bundle == null) //check if plugin is loaded
 			addbtn = ImageIO.read(this.getClass().getResource("/addbutton.png")); // Written only because of testing as a normal java application  
 		else {
@@ -305,10 +305,17 @@ public class SLView extends JDialog {
 			con.compileAction(conList.get(0)); // compile one connection i.e. the first in the list
 		} catch (Exception e2) {
 			JOptionPane.showMessageDialog(null, 
-					e2.getMessage(),
+					e2.getClass(),
 					"Something went wrong!!!", 
 					JOptionPane.ERROR_MESSAGE);
 		}
 
+	}
+	
+	private Bundle getBundle() {
+		if(Platform.isRunning()) {
+			return Platform.getBundle("SecureLinks");
+		}
+		return null;
 	}
 }

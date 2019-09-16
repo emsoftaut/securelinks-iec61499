@@ -14,8 +14,6 @@ public class UIController {
 	private static String sysFile;
 	private static String selectedApp;
 	private List<Connection> conList;
-	private Connection connnection;
-	
 	private static UIController instance;
 	
 	SLView view;
@@ -61,7 +59,7 @@ public class UIController {
 	
 	public void compileAction(Connection con) throws Exception {
 		
-		if(connnection.isValidSecureLink(con)) {
+		if(con.isValidSecureLink(con)) {
 			Compiler compilerObj = new Compiler(con);
 			compilerObj.compile();
 		}

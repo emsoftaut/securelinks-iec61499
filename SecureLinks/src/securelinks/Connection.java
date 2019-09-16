@@ -38,7 +38,7 @@ public class Connection {
 		if(sysReaderWriter != null) {
 			connections = new ArrayList<Connection>();
 			List <DeviceMappings> mappings = getDeviceMappings().stream() //filtering mappings that belong to the selected application
-					.filter(m->m.from.split("\\.")[0].equals(selectedApp)).collect(Collectors.toList());
+					.filter(m->m.getFrom().split("\\.")[0].equals(selectedApp)).collect(Collectors.toList());
 			int numDataConnections = sysReaderWriter.getApplicationDataConnetionsCount();
 			
 			for(int i = 0; i < numDataConnections; i++) {
@@ -50,10 +50,10 @@ public class Connection {
 		    	con.setConnectionComment(sysReaderWriter.getConnectionCommentValue(i)); 
 		    	
 		    	for(DeviceMappings map : mappings) {
-		    		if(map.from.split("\\.")[1].equals(con.getSourceFB()))
-		    			con.setSourceFBDevice(map.to.split("\\.")[0]);
-		    		if(map.from.split("\\.")[1].equals(con.getDestinationFB()))
-		    			con.setDestinationFBDevice(map.to.split("\\.")[0]);
+		    		if(map.getFrom().split("\\.")[1].equals(con.getSourceFB()))
+		    			con.setSourceFBDevice(map.getTo().split("\\.")[0]);
+		    		if(map.getFrom().split("\\.")[1].equals(con.getDestinationFB()))
+		    			con.setDestinationFBDevice(map.getTo().split("\\.")[0]);
 		    	}
 	
 		    	connections.add(con);
@@ -99,8 +99,8 @@ public class Connection {
 		
 		for(int i = 0; i < numOfMappings; i++) {
 			DeviceMappings mapping = new DeviceMappings();
-			mapping.from = sysReaderWriter.getDeviceMappingFromAtr(i);
-			mapping.to = sysReaderWriter.getDeviceMappingToAtr(i);
+			mapping.setFrom(sysReaderWriter.getDeviceMappingFromAtr(i));
+			mapping.setTo(sysReaderWriter.getDeviceMappingToAtr(i));
 			mappingsList.add(mapping);
 		}
 		return mappingsList;

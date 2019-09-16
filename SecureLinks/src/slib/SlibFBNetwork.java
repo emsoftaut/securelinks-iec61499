@@ -91,7 +91,7 @@ public class SlibFBNetwork {
 		
 		String fbnFileName = null;
 		InputStream insFbn = null;
-		Bundle bundle = Platform.getBundle(PLUGIN_BUNDLE_NAME);	
+		Bundle bundle = getBundle();
 		
 		if(bundle == null) { //check if plugin is loaded
 			fbnFileName = SLIB_DIRECTORY + fbnName + FBN_FILE_EXT;
@@ -263,5 +263,12 @@ private void loadRightDeviceMappings() {
 	
 	private void addToRightDeviceSet(String fbName) {
 		this.setRightDeviceFBs.add(fbName);
+	}
+	
+	private Bundle getBundle() {
+		if(Platform.isRunning()) {
+			return Platform.getBundle(PLUGIN_BUNDLE_NAME);
+		}
+		return null;
 	}
 }
