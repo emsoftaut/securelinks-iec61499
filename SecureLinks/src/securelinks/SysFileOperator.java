@@ -73,7 +73,7 @@ public class SysFileOperator {
 			turnOffDTDValidation(factory);
 			
 			DocumentBuilder builder = factory.newDocumentBuilder(); 
-			system = builder.parse(new File(this.sysFile));
+			system = builder.parse(new File(this.sysFile)); 
 		} catch (Exception e) {
 			System.out.println("Exception caught by Secure Links: " + e.getMessage());
 		}
@@ -195,10 +195,16 @@ public class SysFileOperator {
 			if(system != null) {
 				DOMSource source = new DOMSource(this.system);
 				StreamResult result = new StreamResult(new File(this.sysFile));
-				transformer.transform(source, result);
+				transformer.transform(source, result); 
+				//result.getOutputStream().close();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	
+	public void close() {
+		
 	}
 }

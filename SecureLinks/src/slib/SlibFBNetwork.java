@@ -2,7 +2,6 @@ package slib;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -37,6 +36,7 @@ public class SlibFBNetwork {
 	private final String TAG_DEVICE_RIGHT = "deviceRight";
 	private final String TAG_FB = "FB";
 	private final String PARAMS_NULL = "null";
+	private final String PARAMS_SPLITTER = ",";
 
 
 	//private final String SECURE_LINK_REGEX = "@[sS][lL]\\s*\\((\\s*\\w*\\s*,\\s*\\w*\\s*,)\\s*\\w+\\s*\\)";
@@ -109,7 +109,7 @@ public class SlibFBNetwork {
 		if(!params.toLowerCase().equals(PARAMS_NULL)) {
 			
 			paramsList =  new ArrayList<String>();
-			String[] pList = params.split(",");
+			String[] pList = params.split(PARAMS_SPLITTER);
 			
 			for(int i = 0; i < pList.length; i++) 
 				addToParamsList(pList[i].trim());

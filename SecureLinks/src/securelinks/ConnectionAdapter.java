@@ -85,7 +85,7 @@ public class ConnectionAdapter {
 		List <Connection> sysFileCons = getInterDeviceDataConnections();
 		
 		//Assuming that connections will be the same in existing system file 
-		//and the modified connection list obtained from GUI
+		//and the modified connection list obtained from GUI.
 		for(int i = 0; i < sysFileCons.size(); i++) {
 			Connection sysFileCon = sysFileCons.get(i);
 			Connection updatedCon = conList.get(i);

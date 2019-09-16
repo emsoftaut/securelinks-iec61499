@@ -15,6 +15,9 @@ public class Compiler {
 		//line 4 - Retrieve sl:sm from SLib
 		SlibFBNetwork sfbn = new SlibFBNetwork();
 		sfbn.instantiateFBN("SHA1", "abc, cde");
+		
+		Connection con = new Connection();
+		
 
 	}
 }

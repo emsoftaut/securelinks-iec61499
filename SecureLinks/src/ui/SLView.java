@@ -274,6 +274,7 @@ public class SLView extends JDialog {
 			if(validSecureLinkString) {
 				con.setUpdatedConnectionListFromUI(conList);
 				con.SaveConnections();
+				
 				JOptionPane.showMessageDialog(((Component)e.getSource()).getParent().getParent(), 
 						"Secure Links saved", 
 						"Operation done", 
@@ -301,7 +302,7 @@ public class SLView extends JDialog {
 		
 		try {
 			UIController con = UIController.getInstance(sysFile, selectedApp);
-			con.compileAction(conList.get(0));
+			con.compileAction(conList.get(0)); // compile one connection i.e. the first in the list
 		} catch (Exception e2) {
 			JOptionPane.showMessageDialog(null, 
 					e2.getMessage(),

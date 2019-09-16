@@ -7,7 +7,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import securelinks.Connection;
-import securelinks.ConnectionAdapter;
 import slib.Compiler;
 
 public class UIController {
@@ -15,7 +14,7 @@ public class UIController {
 	private static String sysFile;
 	private static String selectedApp;
 	private List<Connection> conList;
-	private ConnectionAdapter conAdpt;
+	private Connection connnection;
 	
 	private static UIController instance;
 	
@@ -33,9 +32,8 @@ public class UIController {
 	}
 
 	public List<Connection> getConnectionList() {
-		conAdpt =  new ConnectionAdapter();
-	    conAdpt.loadSystem(sysFile, selectedApp);
-		return conAdpt.getInterDeviceDataConnections();
+		Connection.loadConnections(sysFile, selectedApp);
+		return Connection.getInterDeviceDataConnections();
 	}
 	
 	public void loadSecureLinkGUI(IWorkbenchWindow window) {
@@ -58,12 +56,12 @@ public class UIController {
 	
 	public void SaveConnections() {
 		List<Connection> conList = getUpdatedConnectionListFromUI();
-		conAdpt.UpdateConnections(conList);
+		Connection.UpdateConnections(conList);
 	}
 	
 	public void compileAction(Connection con) throws Exception {
 		
-		if(conAdpt.isValidSecureLink(con)) {
+		if(connnection.isValidSecureLink(con)) {
 			Compiler compilerObj = new Compiler(con);
 			compilerObj.compile();
 		}
