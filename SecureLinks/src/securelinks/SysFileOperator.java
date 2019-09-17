@@ -9,6 +9,7 @@ import javax.swing.text.StyledEditorKit.ForegroundAction;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -26,29 +27,27 @@ import org.xml.sax.SAXException;
  */
 public class SysFileOperator {
 	
-	private static final NullPointerException NullPointerException = null;
-	private static final String E_DATA_CONNECTIONS = "DataConnections";
-	private static final String E_CONNECTION = "Connection";
-	private static final String E_APPLICATION = "Application";
-	private static final String E_DEVICE = "Device";
-	private static final String E_MAPPING = "Mapping";
-	private static final String A_SRC = "Source";
-	private static final String A_DST = "Destination";
-	private static final String A_NAME = "Name";
-	private static final String A_FROM = "From";
-	private static final String A_TO = "To";
-	private static final String A_COMMENT = "Comment";
+	private final NullPointerException NullPointerException = null;
+	private final int FIRST_ELEMENT = 0;
+	private final String E_DATA_CONNECTIONS = "DataConnections";
+	private final String E_EVENT_CONNECTIONS = "EventConnections";
+	private final String E_CONNECTION = "Connection";
+	private final String E_APPLICATION = "Application";
+	private final String E_SUB_APPLICATION = "SubAppNetwork";
+	private final String E_DEVICE = "Device";
+	private final String E_MAPPING = "Mapping";
+	private final String E_FB = "FB";
+	private final String A_SRC = "Source";
+	private final String A_DST = "Destination";
+	private final String A_NAME = "Name";
+	private final String A_FROM = "From";
+	private final String A_TO = "To";
+	private final String A_COMMENT = "Comment";
 	
 	private Document system = null;
 	private String sysFile = null;
 	private String selectedApplication = null;
 	
-	
-	private Document getRoot() throws NullPointerException {
-		if(system == null)
-			throw NullPointerException;
-		return this.system;
-	}
 	
 	/*
 	 * We do this because DOM parser throws a fatal error for HOLOBLOC DTD that fordiac uses. 
@@ -79,9 +78,50 @@ public class SysFileOperator {
 		}
 	}
 	
-	public void sysFileSave() {
-		if(this.system != null) {
-			//TO-DO
+	public void addFBsfromSlibFBN(NodeList slibFBs) {
+		Element app = getSelectedApplication(selectedApplication);
+		for(int i = 0; i < slibFBs.getLength(); i++) {
+			Node subapp = app.getElementsByTagName(E_SUB_APPLICATION).item(FIRST_ELEMENT);
+			subapp.insertBefore(system.importNode(slibFBs.item(i), false), 
+					app.getElementsByTagName(E_FB).item(FIRST_ELEMENT));
+		}
+	}
+	
+	public void addEventConnectionsfromSlibFBN(NodeList slibEventCons) {
+		Element app = getSelectedApplication(selectedApplication);
+		for(int i = 0; i < slibEventCons.getLength(); i++) {
+			Element subapp = (Element) app.getElementsByTagName(E_SUB_APPLICATION).item(FIRST_ELEMENT);
+			Node eventCons = subapp.getElementsByTagName(E_EVENT_CONNECTIONS).item(FIRST_ELEMENT);
+			Node refNode = 	((Element)eventCons).getElementsByTagName(E_CONNECTION).item(FIRST_ELEMENT);
+			
+			eventCons.insertBefore(system.importNode(slibEventCons.item(i), false), refNode);
+		}
+	}
+	
+	public void addDataConnectionsfromSlibFBN(NodeList slibDataCons) {
+		Element app = getSelectedApplication(selectedApplication);
+		for(int i = 0; i < slibDataCons.getLength(); i++) {
+			Element subapp = (Element) app.getElementsByTagName(E_SUB_APPLICATION).item(FIRST_ELEMENT);
+			Node eventCons = subapp.getElementsByTagName(E_DATA_CONNECTIONS).item(FIRST_ELEMENT);
+			Node refNode = 	((Element)eventCons).getElementsByTagName(E_CONNECTION).item(FIRST_ELEMENT);
+			
+			eventCons.insertBefore(system.importNode(slibDataCons.item(i), false), refNode);
+		}
+	}
+	
+	public void removeConnection(String source, String destination) {
+		NodeList nList = getApplicationDataConnetions();
+		
+		for(int i = 0; i < nList.getLength(); i++) {
+			String src = nList.item(i).getAttributes().getNamedItem(A_SRC).getNodeValue();
+			String dst = nList.item(i).getAttributes().getNamedItem(A_DST).getNodeValue();
+			if(src.equals(source) && dst.equals(destination)) {
+				Node conToRemove = nList.item(i);
+				if(conToRemove.getPreviousSibling().getNodeType() == Node.TEXT_NODE&&
+						conToRemove.getPreviousSibling().getNodeValue().trim().length() == 0)
+					conToRemove.getParentNode().removeChild(conToRemove.getPreviousSibling());
+				conToRemove.getParentNode().removeChild(nList.item(i));
+			}
 		}
 	}
 	
@@ -195,6 +235,9 @@ public class SysFileOperator {
 			if(system != null) {
 				DOMSource source = new DOMSource(this.system);
 				StreamResult result = new StreamResult(new File(this.sysFile));
+				transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+				transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+				transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 				transformer.transform(source, result); 
 				//result.getOutputStream().close();
 			}

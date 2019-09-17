@@ -35,6 +35,11 @@ public class SlibFBNetwork {
 	private final String TAG_DEVICE_LEFT = "deviceLeft";
 	private final String TAG_DEVICE_RIGHT = "deviceRight";
 	private final String TAG_FB = "FB";
+	private final String TAG_EVENT_CONNECTIONS = "EventConnections";
+	private final String TAG_DATA_CONNECTIONS = "DataConnections";
+	private final String TAG_CONNECTION = "Connection";
+	private final String TAG_APPLICATION = "Application";
+	private final String TAG_SUB_APPLICATION_NETWORK = "SubAppNetwork";
 	private final String PARAMS_NULL = "null";
 	private final String PARAMS_SPLITTER = ",";
 
@@ -44,10 +49,12 @@ public class SlibFBNetwork {
 	private String fbnName;
 	
 	private String inFbDef;
+	private String inFBName;
 	private String inVar;
 	private String inVarType;
 	
-	private String outFbDefinition;
+	private String outFbDef;
+	private String outFBName;
 	private String outVar;
 	private String outVarType;
 	
@@ -76,13 +83,15 @@ public class SlibFBNetwork {
 	
 	private void loadFBN() {
 		
-		setFbnName(getSlibFBNetowrkName()); 
-		setInFBDefinition(getInFBDefAttribute()); 
-		setOutFbDefinition(getOutFBDefAttribute()); 
-		setInVariable(getInFBVariable()); 
-		setOutVariable(getOutFBVariable()); 
-		setInVariableType(getInVariableTypeFromFBNFile()); 
-		setOutVariableType(getOutVariableTypeFromFBNFile()); 
+		this.fbnName = getSlibFBNetowrkName();
+		this.inFBName = getSlibInFBName();
+		this.outFBName = getSlibOutFBName();
+		this.inFbDef = getSlibInFBDefAttribute(); 
+		this.outFbDef = getSlibOutFBDefAttribute(); 
+		this.inVar = getSlibInFBVariable(); 
+		this.outVar = getSlibOutFBVariable(); 
+		this.inVarType = getSlibInVariableTypeFromFBNFile(); 
+		this.outVarType = getSlibOutVariableTypeFromFBNFile(); 
 		assignParams(this.params);
 		loadDeviceMappings();
 	}
@@ -132,7 +141,7 @@ public class SlibFBNetwork {
 			addToLeftDeviceSet(nList.item(i).getAttributes().getNamedItem(TAG_NAME).getNodeValue());
 	}
 	
-private void loadRightDeviceMappings() {
+	private void loadRightDeviceMappings() {
 		
 		setRightDeviceFBs = new HashSet<String>();
 		Element dLeft = (Element) ((Element)this.fbnDoc.getDocumentElement().
@@ -143,112 +152,129 @@ private void loadRightDeviceMappings() {
 			addToRightDeviceSet(nList.item(i).getAttributes().getNamedItem(TAG_NAME).getNodeValue());
 	}
 	
+	private String getSlibInFBName() {
+		return getSlibInFBVariable().split("\\.")[0]; 
+	}
+	
+	private String getSlibOutFBName() {
+		return getSlibOutFBVariable().split("\\.")[0]; 
+	}
+	
 	private String getSlibFBNetowrkName() {
 		return ((Element) ((Element) this.fbnDoc.getDocumentElement().
 				getElementsByTagName(TAG_META_DATA).item(FIRST_ELEMENT))).
 				getAttributes().getNamedItem(TAG_NAME).getNodeValue();
 	}
 	
-	private String getInFBDefAttribute() {
+	private String getSlibInFBDefAttribute() {
 		return ((Element) ((Element) this.fbnDoc.getDocumentElement().
 				getElementsByTagName(TAG_META_DATA).item(FIRST_ELEMENT)).getElementsByTagName(TAG_IN).
 				item(FIRST_ELEMENT)).getAttributes().getNamedItem(TAG_FB_DEFINITION).getNodeValue();
 
 	}
 	
-	private String getOutFBDefAttribute() {
+	private String getSlibOutFBDefAttribute() {
 		return ((Element) ((Element) this.fbnDoc.getDocumentElement().
 				getElementsByTagName(TAG_META_DATA).item(FIRST_ELEMENT)).getElementsByTagName(TAG_OUT).
 				item(FIRST_ELEMENT)).getAttributes().getNamedItem(TAG_FB_DEFINITION).getNodeValue();
 
 	}
 	
-	private String getInFBVariable() {
+	private String getSlibInFBVariable() {
 		return ((Element) ((Element) this.fbnDoc.getDocumentElement().
 				getElementsByTagName(TAG_META_DATA).item(FIRST_ELEMENT)).getElementsByTagName(TAG_IN).
 				item(FIRST_ELEMENT)).getAttributes().getNamedItem(TAG_VAR).getNodeValue();
 
 	}
 	
-	private String getOutFBVariable() {
+	private String getSlibOutFBVariable() {
 		return ((Element) ((Element) this.fbnDoc.getDocumentElement().
 				getElementsByTagName(TAG_META_DATA).item(FIRST_ELEMENT)).getElementsByTagName(TAG_OUT).
 				item(FIRST_ELEMENT)).getAttributes().getNamedItem(TAG_VAR).getNodeValue();
 
 	}
 	
-	private String getInVariableTypeFromFBNFile() {
+	private String getSlibInVariableTypeFromFBNFile() {
 		return ((Element) ((Element) this.fbnDoc.getDocumentElement().
 				getElementsByTagName(TAG_META_DATA).item(FIRST_ELEMENT)).getElementsByTagName(TAG_IN).
 				item(FIRST_ELEMENT)).getAttributes().getNamedItem(TAG_VAR_TYPE).getNodeValue();
 
 	}
 	
-	private String getOutVariableTypeFromFBNFile() {
+	private String getSlibOutVariableTypeFromFBNFile() {
 		return ((Element) ((Element) this.fbnDoc.getDocumentElement().
 				getElementsByTagName(TAG_META_DATA).item(FIRST_ELEMENT)).getElementsByTagName(TAG_OUT).
 				item(FIRST_ELEMENT)).getAttributes().getNamedItem(TAG_VAR_TYPE).getNodeValue();
 
+	}
+	
+	public NodeList getFBs() {
+		Element application = (Element) this.fbnDoc.getDocumentElement().
+								getElementsByTagName(TAG_APPLICATION).item(FIRST_ELEMENT);
+		Element subAppNet = (Element) application.getElementsByTagName(TAG_SUB_APPLICATION_NETWORK).item(FIRST_ELEMENT);
+		
+		NodeList FBs = subAppNet.getElementsByTagName(TAG_FB);
+		return FBs; 
+	}
+	
+	public NodeList getEventConnections() {
+		Element application = (Element) this.fbnDoc.getDocumentElement().
+								getElementsByTagName(TAG_APPLICATION).item(FIRST_ELEMENT);
+		Element subAppNet = (Element) application.getElementsByTagName(TAG_SUB_APPLICATION_NETWORK).item(FIRST_ELEMENT);
+		
+		NodeList eventCons = ((Element)subAppNet.getElementsByTagName(TAG_EVENT_CONNECTIONS).item(FIRST_ELEMENT)).
+									getElementsByTagName(TAG_CONNECTION);
+		return eventCons; 
+	}
+	
+	public NodeList getDataConnections() {
+		Element application = (Element) this.fbnDoc.getDocumentElement().
+								getElementsByTagName(TAG_APPLICATION).item(FIRST_ELEMENT);
+		Element subAppNet = (Element) application.getElementsByTagName(TAG_SUB_APPLICATION_NETWORK).item(FIRST_ELEMENT);
+		
+		NodeList dataCons = ((Element)subAppNet.getElementsByTagName(TAG_DATA_CONNECTIONS).item(FIRST_ELEMENT)).
+									getElementsByTagName(TAG_CONNECTION);
+		return dataCons; 
 	}
 	
 	//////////// Getters and Setters	
 	
-	public String getFbnName() {
-		return fbnName;
+	public String getInFBName() {
+		return inFBName;
 	}
 
-	private void setFbnName(String fbName) {
-		this.fbnName = fbName;
+	public String getOutFBName() {
+		return outFBName;
+	}
+
+	public String getFbnName() {
+		return fbnName;
 	}
 
 	public String getInFBDefinition() {
 		return inFbDef;
 	}
 	
-	private void setInFBDefinition(String inFbDef) {
-		this.inFbDef = inFbDef;
-	}
-	
 	public String getInVariable() {
 		return inVar;
-	}
-	
-	private void setInVariable(String inVar) {
-		this.inVar = inVar;
 	}
 	
 	public String getInVariableType() {
 		return inVarType;
 	}
 	
-	private void setInVariableType(String inVarType) {
-		this.inVarType = inVarType;
-	}
-
 	public String getOutFbDefinition() {
-		return outFbDefinition;
-	}
-	
-	private void setOutFbDefinition(String outFbDefinition) {
-		this.outFbDefinition = outFbDefinition;
+		return outFbDef;
 	}
 	
 	public String getOutVariable() {
 		return outVar;
 	}
 	
-	private void setOutVariable(String outVar) {
-		this.outVar = outVar;
-	}
-	
 	public String getOutVariableType() {
 		return outVarType;
 	}
 	
-	private void setOutVariableType(String outVarType) {
-		this.outVarType = outVarType;
-	}
-
 	public String getParameter(int index) {
 		return paramsList.get(index);
 	}

@@ -31,11 +31,8 @@ public class SLHandler extends AbstractHandler {
 		window = HandlerUtil.getActiveWorkbenchWindowChecked(event);		
 		FordiacIDE ideOps = new FordiacIDE(window); 
 		
-	
-		//Application.launch(JFXUI.class); 
 		if(ideOps.isRequiredFBApplication()) {
-			IFile sysFile = ideOps.getSysFile(); 
-			String sysFileAbsolutePath = sysFile.getLocation().toString();
+			String sysFileAbsolutePath = ideOps.getSysFilePath();
 			String selectedApp = ideOps.getSelectedApplication();
 		
 			UIController ui =  UIController.getInstance(sysFileAbsolutePath, selectedApp);

@@ -27,7 +27,11 @@ public class Connection {
 		
 	}
 	
-	public static void loadConnections(String sysFile, String selectedApplication) {
+	public static SysFileOperator getSysFileReader() {
+		return sysReaderWriter;
+	}
+	
+	public static void loadSysFile(String sysFile, String selectedApplication) {
 		sysReaderWriter = new SysFileOperator(sysFile, selectedApplication);
 		if(sysReaderWriter != null) 
 			selectedApp = selectedApplication;

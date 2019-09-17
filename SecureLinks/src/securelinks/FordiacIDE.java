@@ -64,6 +64,10 @@ public class FordiacIDE {
 		return sysFile;
 	}
 	
+	public String getSysFilePath() {
+		return getSysFile().getLocation().toString();
+	}
+	
 	public boolean isRequiredFBApplication() {
 		String projectPath = null;
 		IProject activeEditorProject = getProjectFromApplicationEditor(window.getActivePage().getActiveEditor()); //we are concerned with application editor

@@ -303,9 +303,13 @@ public class SLView extends JDialog {
 		try {
 			UIController con = UIController.getInstance(sysFile, selectedApp);
 			con.compileAction(conList.get(0)); // compile one connection i.e. the first in the list
+			JOptionPane.showMessageDialog(((Component)e.getSource()).getParent().getParent(), 
+					"Link Complied", 
+					"Operation done", 
+					JOptionPane.INFORMATION_MESSAGE); 
 		} catch (Exception e2) {
 			JOptionPane.showMessageDialog(null, 
-					e2.getClass(),
+					e2.getLocalizedMessage(),
 					"Something went wrong!!!", 
 					JOptionPane.ERROR_MESSAGE);
 		}

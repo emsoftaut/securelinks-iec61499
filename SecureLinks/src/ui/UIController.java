@@ -30,7 +30,7 @@ public class UIController {
 	}
 
 	public List<Connection> getConnectionList() {
-		Connection.loadConnections(sysFile, selectedApp);
+		Connection.loadSysFile(sysFile, selectedApp);
 		return Connection.getInterDeviceDataConnections();
 	}
 	
