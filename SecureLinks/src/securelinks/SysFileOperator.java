@@ -35,8 +35,10 @@ public class SysFileOperator {
 	private final String E_APPLICATION = "Application";
 	private final String E_SUB_APPLICATION = "SubAppNetwork";
 	private final String E_DEVICE = "Device";
+	private final String E_RESOURCE = "Resource";
 	private final String E_MAPPING = "Mapping";
 	private final String E_FB = "FB";
+	private final String E_FBNETWORK = "FBNetwork";
 	private final String A_SRC = "Source";
 	private final String A_DST = "Destination";
 	private final String A_NAME = "Name";
@@ -109,6 +111,107 @@ public class SysFileOperator {
 		}
 	}
 	
+//	public void addSlibFBsToDevice(NodeList fbList, String deviceName) { is ko seedha karna hai
+//		Node dev = null; 
+//		NodeList devs = system.getElementsByTagName(E_DEVICE);
+//		
+//		for(int i = 0; i < devs.getLength(); i++) //finding specified device node 
+//			if(devs.item(i).getAttributes().getNamedItem(A_NAME).getNodeValue().equals(deviceName)) {
+//				dev = devs.item(i);
+//				break;
+//			}
+//		
+//		Node fbNetwork = ((Element)dev).getElementsByTagName(E_FBNETWORK).item(FIRST_ELEMENT);
+//		NodeList devEvenConList = ((Element)fbNetwork).getElementsByTagName(E_EVENT_CONNECTIONS);
+//		
+//		Node devEventConnections = null;
+//		Node refNode =  null;
+//		
+//		if(devEvenConList.getLength() == 0) { // if there are no event connections mapped to this device, we create EventConnections element
+//			devEventConnections = createEventConnectionsElement(eventConList);
+//			fbNetwork.insertBefore(devEventConnections, fbNetwork.getLastChild());
+//		}
+//		else {
+//			devEventConnections = devEvenConList.item(FIRST_ELEMENT);
+//			refNode = ((Element)devEventConnections).getElementsByTagName(E_CONNECTION).item(FIRST_ELEMENT); 
+//			
+//			for(int i = 0; i < eventConList.getLength(); i++) {
+//				devEventConnections.insertBefore(system.importNode(eventConList.item(i), false), refNode);
+//			}
+//		}
+//	}
+	
+	public void addSlibEventConnectionsToDevice(NodeList eventConList, String deviceName) {
+		Node dev = null; 
+		NodeList devs = system.getElementsByTagName(E_DEVICE);
+		
+		for(int i = 0; i < devs.getLength(); i++) //finding specified device node 
+			if(devs.item(i).getAttributes().getNamedItem(A_NAME).getNodeValue().equals(deviceName)) {
+				dev = devs.item(i);
+				break;
+			}
+		
+		Node fbNetwork = ((Element)dev).getElementsByTagName(E_FBNETWORK).item(FIRST_ELEMENT);
+		NodeList devEvenConList = ((Element)fbNetwork).getElementsByTagName(E_EVENT_CONNECTIONS);
+		
+		Node devEventConnections = null;
+		Node refNode =  null;
+		
+		if(devEvenConList.getLength() == 0) { // if there are no event connections mapped to this device, we create EventConnections element
+			devEventConnections = createEventConnectionsElement(eventConList);
+			fbNetwork.insertBefore(devEventConnections, fbNetwork.getLastChild());
+		}
+		else {
+			devEventConnections = devEvenConList.item(FIRST_ELEMENT);
+			refNode = ((Element)devEventConnections).getElementsByTagName(E_CONNECTION).item(FIRST_ELEMENT); 
+			
+			for(int i = 0; i < eventConList.getLength(); i++) {
+				devEventConnections.insertBefore(system.importNode(eventConList.item(i), false), refNode);
+			}
+		}
+	}
+	
+	public void addSlibDataConnectionsToDevice(NodeList dataConList, String deviceName) {
+		Node dev = null; 
+		NodeList devs = system.getElementsByTagName(E_DEVICE);
+		
+		for(int i = 0; i < devs.getLength(); i++) //finding specified device node 
+			if(devs.item(i).getAttributes().getNamedItem(A_NAME).getNodeValue().equals(deviceName)) {
+				dev = devs.item(i);
+				break;
+			}
+		
+		Node fbNetwork = ((Element)dev).getElementsByTagName(E_FBNETWORK).item(FIRST_ELEMENT);
+		NodeList devDataConList = ((Element)fbNetwork).getElementsByTagName(E_DATA_CONNECTIONS);
+		
+		Node devDataConnections = null;
+		Node refNode =  null;
+		
+		if(devDataConList.getLength() == 0) { // if there are no event connections mapped to this device, we create EventConnections element
+			devDataConnections = createEventConnectionsElement(dataConList);
+			refNode = fbNetwork.insertBefore(devDataConnections, fbNetwork.getLastChild());
+		}
+		else {
+			devDataConnections = devDataConList.item(FIRST_ELEMENT);
+			refNode = ((Element)devDataConnections).getElementsByTagName(E_CONNECTION).item(FIRST_ELEMENT);
+					
+			for(int i = 0; i < dataConList.getLength(); i++) {
+				devDataConnections.insertBefore(system.importNode(dataConList.item(i), false), refNode);
+			}
+		}
+	}
+	private Element createEventConnectionsElement(NodeList conList) {
+		Element evenConnections = system.createElement(E_EVENT_CONNECTIONS);
+		
+		for(int i = 0; i < conList.getLength(); i++) {
+			Node con = conList.item(i).cloneNode(false);
+			system.adoptNode(con);
+			evenConnections.appendChild(con);
+		}
+			
+		return evenConnections;
+	}
+	
 	public void removeConnection(String source, String destination) {
 		NodeList nList = getApplicationDataConnetions();
 		
@@ -117,7 +220,7 @@ public class SysFileOperator {
 			String dst = nList.item(i).getAttributes().getNamedItem(A_DST).getNodeValue();
 			if(src.equals(source) && dst.equals(destination)) {
 				Node conToRemove = nList.item(i);
-				if(conToRemove.getPreviousSibling().getNodeType() == Node.TEXT_NODE&&
+				if(conToRemove.getPreviousSibling().getNodeType() == Node.TEXT_NODE &&
 						conToRemove.getPreviousSibling().getNodeValue().trim().length() == 0)
 					conToRemove.getParentNode().removeChild(conToRemove.getPreviousSibling());
 				conToRemove.getParentNode().removeChild(nList.item(i));
@@ -226,6 +329,30 @@ public class SysFileOperator {
 			to = nList.item(index).getAttributes().getNamedItem(A_TO).getNodeValue();
 		}
 		return to;
+	}
+	
+	public void insertMapping(String devName, String FbName) {
+		Element mapping = system.createElement(E_MAPPING); 
+		String fromVal = selectedApplication + "." + FbName;
+		String toVal = devName + "." + getDeviceResource(devName) + "." + FbName;
+		mapping.setAttribute(A_FROM, fromVal);
+		mapping.setAttribute(A_TO, toVal);
+		Node refNode = system.getElementsByTagName(E_MAPPING).item(FIRST_ELEMENT);
+		//system.appendChild(mapping);
+		system.getDocumentElement().insertBefore(mapping, refNode);
+	}
+	
+	public String getDeviceResource(String devName) {
+		Element root = system.getDocumentElement();
+		NodeList nList = root.getElementsByTagName(E_DEVICE);
+		
+		for(int i = 0; i < nList.getLength(); i++) {
+			if(nList.item(i).getAttributes().getNamedItem(A_NAME).getNodeValue().equals(devName)) {
+				return ((Element)nList.item(i)).getElementsByTagName(E_RESOURCE).item(FIRST_ELEMENT).
+														getAttributes().getNamedItem(A_NAME).getNodeValue();
+			}
+		}
+		return null; 
 	}
 	
 	public void saveSysFile() {

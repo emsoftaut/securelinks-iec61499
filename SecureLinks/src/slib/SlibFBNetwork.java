@@ -16,6 +16,7 @@ import org.eclipse.core.runtime.Platform;
 import org.osgi.framework.Bundle;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public class SlibFBNetwork {
@@ -38,6 +39,8 @@ public class SlibFBNetwork {
 	private final String TAG_EVENT_CONNECTIONS = "EventConnections";
 	private final String TAG_DATA_CONNECTIONS = "DataConnections";
 	private final String TAG_CONNECTION = "Connection";
+	private final String TAG_DESTINATION = "Destination";
+	private final String TAG_SOURCE = "Source";
 	private final String TAG_APPLICATION = "Application";
 	private final String TAG_SUB_APPLICATION_NETWORK = "SubAppNetwork";
 	private final String PARAMS_NULL = "null";
@@ -62,8 +65,8 @@ public class SlibFBNetwork {
 	private String params = null;
 	private List<String> paramsList;
 	
-	private Set<String> setLeftDeviceFBs; 
-	private Set<String> setRightDeviceFBs; 
+	private Set<String> setOfLeftDeviceFBs; 
+	private Set<String> setOfRightDeviceFBs; 
 	
 	
 	public boolean instantiateFBN(String fbnName, String params) throws Exception {
@@ -132,7 +135,7 @@ public class SlibFBNetwork {
 	
 	private void loadLeftDeviceMappings() {
 		
-		setLeftDeviceFBs = new HashSet<String>();
+		setOfLeftDeviceFBs = new HashSet<String>();
 		Element dLeft = (Element) ((Element)this.fbnDoc.getDocumentElement().
 				getElementsByTagName(TAG_META_DATA).item(FIRST_ELEMENT)).
 				getElementsByTagName(TAG_DEVICE_LEFT).item(FIRST_ELEMENT);
@@ -143,7 +146,7 @@ public class SlibFBNetwork {
 	
 	private void loadRightDeviceMappings() {
 		
-		setRightDeviceFBs = new HashSet<String>();
+		setOfRightDeviceFBs = new HashSet<String>();
 		Element dLeft = (Element) ((Element)this.fbnDoc.getDocumentElement().
 				getElementsByTagName(TAG_META_DATA).item(FIRST_ELEMENT)).
 				getElementsByTagName(TAG_DEVICE_RIGHT).item(FIRST_ELEMENT);
@@ -217,6 +220,33 @@ public class SlibFBNetwork {
 		return FBs; 
 	}
 	
+	public NodeList getLeftDeviceFBs() {
+		
+		List<Node> leftDevFbNodes = new ArrayList<Node>();
+		
+		NodeList fbList = new NodeList() {
+			
+			@Override
+			public Node item(int index) {
+				return leftDevFbNodes.get(index);
+			}
+			
+			@Override
+			public int getLength() {
+				return leftDevFbNodes.size();
+			}
+		};
+		
+		NodeList allFBs = getFBs();
+		Set<String> deviceFBs = getLeftDeviceFbNameSet();
+		
+		for(int i = 0; i < allFBs.getLength(); i++) {
+			if(deviceFBs.contains(allFBs.item(i).getAttributes().getNamedItem(TAG_NAME).getNodeValue()))
+					leftDevFbNodes.add(allFBs.item(i));
+		}
+		return fbList;
+	}
+	
 	public NodeList getEventConnections() {
 		Element application = (Element) this.fbnDoc.getDocumentElement().
 								getElementsByTagName(TAG_APPLICATION).item(FIRST_ELEMENT);
@@ -235,6 +265,126 @@ public class SlibFBNetwork {
 		NodeList dataCons = ((Element)subAppNet.getElementsByTagName(TAG_DATA_CONNECTIONS).item(FIRST_ELEMENT)).
 									getElementsByTagName(TAG_CONNECTION);
 		return dataCons; 
+	}
+	
+	public NodeList getLeftDeviceEventConnections() {
+		
+		List<Node> eventConNodes = new ArrayList<Node>();
+		NodeList newNodeList = new NodeList() {
+			@Override
+			public Node item(int index) {	
+				return eventConNodes.get(index);
+			}
+			
+			@Override
+			public int getLength() {
+				return eventConNodes.size();
+			}
+		};
+
+		NodeList nList = getEventConnections();
+		
+		for(int i = 0; i < nList.getLength(); i++) {
+			String fbDst = nList.item(i).getAttributes().getNamedItem(TAG_DESTINATION).getNodeValue().split("\\.")[FIRST_ELEMENT];
+			String fbSrc = nList.item(i).getAttributes().getNamedItem(TAG_SOURCE).getNodeValue().split("\\.")[FIRST_ELEMENT];
+			Set<String> deviceFBs = getLeftDeviceFbNameSet();
+
+			if(deviceFBs.contains(fbDst) && deviceFBs.contains(fbSrc)) {
+				eventConNodes.add(nList.item(i));
+			}
+		}
+
+		return newNodeList;
+	}
+	
+	public NodeList getRightDeviceEventConnections() {
+		
+		List<Node> eventConNodes = new ArrayList<Node>();
+		NodeList newNodeList = new NodeList() {
+			@Override
+			public Node item(int index) {	
+				return eventConNodes.get(index);
+			}
+			
+			@Override
+			public int getLength() {
+				return eventConNodes.size();
+			}
+		};
+
+		NodeList nList = getEventConnections();
+		
+		for(int i = 0; i < nList.getLength(); i++) {
+			String fbDst = nList.item(i).getAttributes().getNamedItem(TAG_DESTINATION).getNodeValue().split("\\.")[FIRST_ELEMENT];
+			String fbSrc = nList.item(i).getAttributes().getNamedItem(TAG_SOURCE).getNodeValue().split("\\.")[FIRST_ELEMENT];
+			Set<String> deviceFBs = getRightDeviceFbNameSet();
+
+			if(deviceFBs.contains(fbDst) && deviceFBs.contains(fbSrc)) {
+				eventConNodes.add(nList.item(i));
+			}
+		}
+
+		return newNodeList;
+	}
+	
+	public NodeList getLeftDeviceDataConnections() {
+		
+		List<Node> eventConNodes = new ArrayList<Node>();
+		NodeList newNodeList = new NodeList() {
+			@Override
+			public Node item(int index) {	
+				return eventConNodes.get(index);
+			}
+			
+			@Override
+			public int getLength() {
+				return eventConNodes.size();
+			}
+		};
+
+		NodeList nList = getDataConnections();
+		
+		for(int i = 0; i < nList.getLength(); i++) {
+			String fbDst = nList.item(i).getAttributes().getNamedItem(TAG_DESTINATION).getNodeValue().split("\\.")[FIRST_ELEMENT];
+			String fbSrc = nList.item(i).getAttributes().getNamedItem(TAG_SOURCE).getNodeValue().split("\\.")[FIRST_ELEMENT];
+			Set<String> deviceFBs = getLeftDeviceFbNameSet();
+
+			if(deviceFBs.contains(fbDst) && deviceFBs.contains(fbSrc)) {
+				eventConNodes.add(nList.item(i));
+			}
+		}
+
+		return newNodeList;
+	}
+	
+public NodeList getRightDeviceDataConnections() {
+		
+		List<Node> eventConNodes = new ArrayList<Node>();
+		NodeList newNodeList = new NodeList() {
+			@Override
+			public Node item(int index) {	
+				return eventConNodes.get(index);
+			}
+			
+			@Override
+			public int getLength() {
+				return eventConNodes.size();
+			}
+		};
+
+		NodeList nList = getDataConnections();
+		
+		for(int i = 0; i < nList.getLength(); i++) {
+			String fbDst = nList.item(i).getAttributes().getNamedItem(TAG_DESTINATION).getNodeValue().split("\\.")[FIRST_ELEMENT];
+			String fbSrc = nList.item(i).getAttributes().getNamedItem(TAG_SOURCE).getNodeValue().split("\\.")[FIRST_ELEMENT];
+			Set<String> deviceFBs = getRightDeviceFbNameSet();
+
+			if(deviceFBs.contains(fbDst) && deviceFBs.contains(fbSrc)) {
+				eventConNodes.add(nList.item(i));
+			}
+		}
+
+		return newNodeList;
 	}
 	
 	//////////// Getters and Setters	
@@ -284,11 +434,19 @@ public class SlibFBNetwork {
 	}
 	
 	private void addToLeftDeviceSet(String fbName) {
-		this.setLeftDeviceFBs.add(fbName);
+		this.setOfLeftDeviceFBs.add(fbName);
 	}
 	
 	private void addToRightDeviceSet(String fbName) {
-		this.setRightDeviceFBs.add(fbName);
+		this.setOfRightDeviceFBs.add(fbName);
+	}
+	
+	public Set<String> getLeftDeviceFbNameSet() {
+		return this.setOfLeftDeviceFBs;
+	}
+	
+	public Set<String> getRightDeviceFbNameSet() {
+		return this.setOfRightDeviceFBs;
 	}
 	
 	private Bundle getBundle() {
