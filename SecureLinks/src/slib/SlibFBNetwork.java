@@ -32,6 +32,7 @@ public class SlibFBNetwork {
 	private final String TAG_FB_DEFINITION = "FBdef";
 	private final String TAG_VAR = "Var";
 	private final String TAG_VAR_TYPE = "Vartype";
+	private final String TAG_TYPE = "type";
 	private final String TAG_NAME = "Name";
 	private final String TAG_DEVICE_LEFT = "deviceLeft";
 	private final String TAG_DEVICE_RIGHT = "deviceRight";
@@ -43,6 +44,9 @@ public class SlibFBNetwork {
 	private final String TAG_SOURCE = "Source";
 	private final String TAG_APPLICATION = "Application";
 	private final String TAG_SUB_APPLICATION_NETWORK = "SubAppNetwork";
+	private final String TAG_PARAMS = "params";
+	private final String TAG_VARIABLE = "Variable";
+	private final String TAG_DEFAULT = "default";
 	private final String PARAMS_NULL = "null";
 	private final String PARAMS_SPLITTER = ",";
 
@@ -63,7 +67,7 @@ public class SlibFBNetwork {
 	
 	private Document fbnDoc = null;
 	private String params = null;
-	private List<String> paramsList;
+	private List<FbnParameters> paramsList;
 	
 	private Set<String> setOfLeftDeviceFBs; 
 	private Set<String> setOfRightDeviceFBs; 
@@ -86,15 +90,16 @@ public class SlibFBNetwork {
 	
 	private void loadFBN() {
 		
-		this.fbnName = getSlibFBNetowrkName();
-		this.inFBName = getSlibInFBName();
-		this.outFBName = getSlibOutFBName();
-		this.inFbDef = getSlibInFBDefAttribute(); 
-		this.outFbDef = getSlibOutFBDefAttribute(); 
-		this.inVar = getSlibInFBVariable(); 
-		this.outVar = getSlibOutFBVariable(); 
-		this.inVarType = getSlibInVariableTypeFromFBNFile(); 
-		this.outVarType = getSlibOutVariableTypeFromFBNFile(); 
+		this.fbnName = loadSlibFBNetowrkName();
+		this.inFBName = loadSlibInFBName();
+		this.outFBName = loadSlibOutFBName();
+		this.inFbDef = loadSlibInFBDefAttribute(); 
+		this.outFbDef = loadSlibOutFBDefAttribute(); 
+		this.inVar = loadSlibInFBVarAttValue().split("\\.")[1]; 
+		this.outVar = loadSlibOutFBVarAttValue().split("\\.")[1]; 
+		this.inVarType = loadSlibInVariableTypeFromFBNFile(); 
+		this.outVarType = loadSlibOutVariableTypeFromFBNFile();
+		loadParams();
 		assignParams(this.params);
 		loadDeviceMappings();
 	}
@@ -116,15 +121,36 @@ public class SlibFBNetwork {
 		return insFbn;
 	}
 	
+	private void loadParams() {
+		Element paramsNode = (Element) this.fbnDoc.getElementsByTagName(TAG_PARAMS).item(FIRST_ELEMENT);
+		NodeList varList = paramsNode.getElementsByTagName(TAG_VARIABLE);
+		
+		if(varList.getLength() > 0) {
+			this.paramsList = new ArrayList<FbnParameters>();
+			
+			for(int i = 0; i < varList.getLength(); i++) {
+				String nameAttribute = varList.item(i).getAttributes().getNamedItem(TAG_NAME).getNodeValue();
+				String varType = varList.item(i).getAttributes().getNamedItem(TAG_TYPE).getNodeValue();
+				String defaultVal = varList.item(i).getAttributes().getNamedItem(TAG_DEFAULT).getNodeValue();
+				
+				FbnParameters param = new FbnParameters();
+				param.setFbName(nameAttribute.split("\\.")[0]);
+				param.setParamName(nameAttribute.split("\\.")[1]);
+				param.setParamType(varType);
+				param.setParamtVal(defaultVal);
+				
+				this.paramsList.add(param);
+			}
+		}
+	}
+	
 	private void assignParams(String params) {
 		
 		if(!params.toLowerCase().equals(PARAMS_NULL)) {
-			
-			paramsList =  new ArrayList<String>();
 			String[] pList = params.split(PARAMS_SPLITTER);
 			
 			for(int i = 0; i < pList.length; i++) 
-				addToParamsList(pList[i].trim());
+				this.paramsList.get(i).setParamtVal(pList[i].trim());
 		}
 	}
 	
@@ -155,56 +181,56 @@ public class SlibFBNetwork {
 			addToRightDeviceSet(nList.item(i).getAttributes().getNamedItem(TAG_NAME).getNodeValue());
 	}
 	
-	private String getSlibInFBName() {
-		return getSlibInFBVariable().split("\\.")[0]; 
+	private String loadSlibInFBName() {
+		return loadSlibInFBVarAttValue().split("\\.")[0]; 
 	}
 	
-	private String getSlibOutFBName() {
-		return getSlibOutFBVariable().split("\\.")[0]; 
+	private String loadSlibOutFBName() {
+		return loadSlibOutFBVarAttValue().split("\\.")[0]; 
 	}
 	
-	private String getSlibFBNetowrkName() {
+	private String loadSlibFBNetowrkName() {
 		return ((Element) ((Element) this.fbnDoc.getDocumentElement().
 				getElementsByTagName(TAG_META_DATA).item(FIRST_ELEMENT))).
 				getAttributes().getNamedItem(TAG_NAME).getNodeValue();
 	}
 	
-	private String getSlibInFBDefAttribute() {
+	private String loadSlibInFBDefAttribute() {
 		return ((Element) ((Element) this.fbnDoc.getDocumentElement().
 				getElementsByTagName(TAG_META_DATA).item(FIRST_ELEMENT)).getElementsByTagName(TAG_IN).
 				item(FIRST_ELEMENT)).getAttributes().getNamedItem(TAG_FB_DEFINITION).getNodeValue();
 
 	}
 	
-	private String getSlibOutFBDefAttribute() {
+	private String loadSlibOutFBDefAttribute() {
 		return ((Element) ((Element) this.fbnDoc.getDocumentElement().
 				getElementsByTagName(TAG_META_DATA).item(FIRST_ELEMENT)).getElementsByTagName(TAG_OUT).
 				item(FIRST_ELEMENT)).getAttributes().getNamedItem(TAG_FB_DEFINITION).getNodeValue();
 
 	}
 	
-	private String getSlibInFBVariable() {
+	private String loadSlibInFBVarAttValue() {
 		return ((Element) ((Element) this.fbnDoc.getDocumentElement().
 				getElementsByTagName(TAG_META_DATA).item(FIRST_ELEMENT)).getElementsByTagName(TAG_IN).
 				item(FIRST_ELEMENT)).getAttributes().getNamedItem(TAG_VAR).getNodeValue();
 
 	}
 	
-	private String getSlibOutFBVariable() {
+	private String loadSlibOutFBVarAttValue() {
 		return ((Element) ((Element) this.fbnDoc.getDocumentElement().
 				getElementsByTagName(TAG_META_DATA).item(FIRST_ELEMENT)).getElementsByTagName(TAG_OUT).
 				item(FIRST_ELEMENT)).getAttributes().getNamedItem(TAG_VAR).getNodeValue();
 
 	}
 	
-	private String getSlibInVariableTypeFromFBNFile() {
+	private String loadSlibInVariableTypeFromFBNFile() {
 		return ((Element) ((Element) this.fbnDoc.getDocumentElement().
 				getElementsByTagName(TAG_META_DATA).item(FIRST_ELEMENT)).getElementsByTagName(TAG_IN).
 				item(FIRST_ELEMENT)).getAttributes().getNamedItem(TAG_VAR_TYPE).getNodeValue();
 
 	}
 	
-	private String getSlibOutVariableTypeFromFBNFile() {
+	private String loadSlibOutVariableTypeFromFBNFile() {
 		return ((Element) ((Element) this.fbnDoc.getDocumentElement().
 				getElementsByTagName(TAG_META_DATA).item(FIRST_ELEMENT)).getElementsByTagName(TAG_OUT).
 				item(FIRST_ELEMENT)).getAttributes().getNamedItem(TAG_VAR_TYPE).getNodeValue();
@@ -243,6 +269,33 @@ public class SlibFBNetwork {
 		for(int i = 0; i < allFBs.getLength(); i++) {
 			if(deviceFBs.contains(allFBs.item(i).getAttributes().getNamedItem(TAG_NAME).getNodeValue()))
 					leftDevFbNodes.add(allFBs.item(i));
+		}
+		return fbList;
+	}
+	
+	public NodeList getRightDeviceFBs() {
+		
+		List<Node> rightDevFbNodes = new ArrayList<Node>();
+		
+		NodeList fbList = new NodeList() {
+			
+			@Override
+			public Node item(int index) {
+				return rightDevFbNodes.get(index);
+			}
+			
+			@Override
+			public int getLength() {
+				return rightDevFbNodes.size();
+			}
+		};
+		
+		NodeList allFBs = getFBs();
+		Set<String> deviceFBs = getRightDeviceFbNameSet();
+		
+		for(int i = 0; i < allFBs.getLength(); i++) {
+			if(deviceFBs.contains(allFBs.item(i).getAttributes().getNamedItem(TAG_NAME).getNodeValue()))
+					rightDevFbNodes.add(allFBs.item(i));
 		}
 		return fbList;
 	}
@@ -426,13 +479,9 @@ public NodeList getRightDeviceDataConnections() {
 	}
 	
 	public String getParameter(int index) {
-		return paramsList.get(index);
+		return paramsList.get(index).getParamVal();
 	}
 
-	private void addToParamsList(String p) {
-		this.paramsList.add(p);
-	}
-	
 	private void addToLeftDeviceSet(String fbName) {
 		this.setOfLeftDeviceFBs.add(fbName);
 	}

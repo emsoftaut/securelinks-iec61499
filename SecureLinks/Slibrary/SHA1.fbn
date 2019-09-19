@@ -2,14 +2,14 @@
 <FBN>
 	<meta Name="SHA1">
 		<in FBdef="SHA1.fbt" Var="slib_sha_in.data" Vartype="Byte"/>
-		<out FBdef="SHA1.fbt" Var="slib_sha_out.data" Vartype="Byte" />
+		<out FBdef="SHA1.fbt" Var="slib_sha_out.out" Vartype="Byte" />
 		<params>
-			<var Name="slib_sha_in.datalen"/>
-			<var Name="slib_sha_in.QI"/>
-			<var Name="slib_sha_in.ID"/>
-			<var Name="slib_sha_out.datalen"/>
-			<var Name="slib_sha_out.QI"/>
-			<var Name="slib_sha_out.ID"/>
+			<Variable Name="slib_sha_in.datalen" type="INT" default="128"/>
+			<Variable Name="slib_sha_in.QI" type="BOOL" default="true"/>
+			<Variable Name="slib_sha_in.ID" type="WSTRING" default="224.0.0.0:61000"/>
+			<Variable Name="slib_sha_out.datalen" type="INT"default="128"/>
+			<Variable Name="slib_sha_out.QI" type="BOOL"default="true"/>
+			<Variable Name="slib_sha_out.ID" type="WSTRING" default="224.0.0.0:61000"/>
 		</params>
 		<mapping>
 			<deviceLeft>
