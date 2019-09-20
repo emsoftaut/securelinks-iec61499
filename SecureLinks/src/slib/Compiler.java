@@ -1,10 +1,5 @@
 package slib;
 
-
-import java.net.CookieHandler;
-import java.util.List;
-
-import org.eclipse.swt.events.GestureListener;
 import org.w3c.dom.NodeList;
 
 import securelinks.Connection;
@@ -12,11 +7,32 @@ import securelinks.SysFileOperator;
 
 public class Compiler {
 	
+	private final int PARAM_START_INDEX = 4;
+	
 	private Connection connection;
+	
+	private String requirement; //will  be used future versions
+	private String fbnName;
+	private String params;
+	
 	
 	public Compiler(Connection con) {
 		connection = con;
+		
+		splitSecureLinkAnnotation(connection.getConnectionComment());
 	}
+	
+	private void splitSecureLinkAnnotation(String conComment) {
+		if(!conComment.isEmpty()) {
+			String sansWhiteSpaces = conComment.replaceAll("\\s+",""); // remove white spaces
+			String justThecommaSperatedString = sansWhiteSpaces.substring(PARAM_START_INDEX, sansWhiteSpaces.length() - 1);
+			this.requirement = justThecommaSperatedString.split(",")[0];
+			this.fbnName = justThecommaSperatedString.split(",")[1];
+			String [] a = justThecommaSperatedString.split(",", 3);
+			System.out.println(a);
+		}
+	}
+	
 	public void compile() throws Exception {
 		
 		//line 3 - We already have connections that are mapped on different devices.
@@ -47,18 +63,30 @@ public class Compiler {
 		//line 14: connect fbns.S.cout.out to sl.out
 		ConnectOut(sysFileOp, sfbn); 
 		
-		//line 17: fbns.S.params = sl.pv
-		assignParameters(sysFileOp, sfbn);
-		
 		//line 18: Add fbn_s to fbn_out
 		addSlibFBNToAppFBN(sysFileOp, sfbn);
+		
+		//line 17: fbns.S.params = sl.pv
+		//We defer the assignment of parameters due to implementation reasons. It does not affect the compilation logic. 
+		assignParameters(sysFileOp, sfbn);
 		
 		sysFileOp.saveSysFile();
 
 	}
 	
 	private void assignParameters(SysFileOperator sysFileOp, SlibFBNetwork sfbn) {
-		
+		for(int i = 0; i < sfbn.getParamsCount(); i++) {
+			FbnParameter p = sfbn.getParameter(i);
+			String devMap = sfbn.getDeviveFromFB(p.getFbName());
+			String devName = null;
+			
+			if(devMap.equals(SlibFBNetwork.TAG_DEVICE_LEFT))
+				devName = connection.getSourceFBDevice();
+			else if(devMap.equals(SlibFBNetwork.TAG_DEVICE_RIGHT))
+				devName = connection.getDestinationFBDevice();
+			
+			sysFileOp.addFBParameter(devName, p.getFbName(), p.getParamName(), p.getParamVal());
+		}
 	}
 	
 	private void ConnectIn(SysFileOperator sysFileOp, SlibFBNetwork sfbn) {

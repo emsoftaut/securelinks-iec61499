@@ -1,6 +1,6 @@
 package slib;
 
-public class FbnParameters {
+public class FbnParameter {
 	private String fbName;
 	private String paramName;
 	private String paramType;

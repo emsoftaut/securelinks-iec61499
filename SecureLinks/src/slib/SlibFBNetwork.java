@@ -34,8 +34,6 @@ public class SlibFBNetwork {
 	private final String TAG_VAR_TYPE = "Vartype";
 	private final String TAG_TYPE = "type";
 	private final String TAG_NAME = "Name";
-	private final String TAG_DEVICE_LEFT = "deviceLeft";
-	private final String TAG_DEVICE_RIGHT = "deviceRight";
 	private final String TAG_FB = "FB";
 	private final String TAG_EVENT_CONNECTIONS = "EventConnections";
 	private final String TAG_DATA_CONNECTIONS = "DataConnections";
@@ -49,6 +47,9 @@ public class SlibFBNetwork {
 	private final String TAG_DEFAULT = "default";
 	private final String PARAMS_NULL = "null";
 	private final String PARAMS_SPLITTER = ",";
+	
+	public final static String TAG_DEVICE_LEFT = "deviceLeft";
+	public final static String TAG_DEVICE_RIGHT = "deviceRight";
 
 
 	//private final String SECURE_LINK_REGEX = "@[sS][lL]\\s*\\((\\s*\\w*\\s*,\\s*\\w*\\s*,)\\s*\\w+\\s*\\)";
@@ -67,7 +68,7 @@ public class SlibFBNetwork {
 	
 	private Document fbnDoc = null;
 	private String params = null;
-	private List<FbnParameters> paramsList;
+	private List<FbnParameter> paramsList;
 	
 	private Set<String> setOfLeftDeviceFBs; 
 	private Set<String> setOfRightDeviceFBs; 
@@ -100,7 +101,6 @@ public class SlibFBNetwork {
 		this.inVarType = loadSlibInVariableTypeFromFBNFile(); 
 		this.outVarType = loadSlibOutVariableTypeFromFBNFile();
 		loadParams();
-		assignParams(this.params);
 		loadDeviceMappings();
 	}
 	
@@ -126,14 +126,14 @@ public class SlibFBNetwork {
 		NodeList varList = paramsNode.getElementsByTagName(TAG_VARIABLE);
 		
 		if(varList.getLength() > 0) {
-			this.paramsList = new ArrayList<FbnParameters>();
+			this.paramsList = new ArrayList<FbnParameter>();
 			
 			for(int i = 0; i < varList.getLength(); i++) {
 				String nameAttribute = varList.item(i).getAttributes().getNamedItem(TAG_NAME).getNodeValue();
 				String varType = varList.item(i).getAttributes().getNamedItem(TAG_TYPE).getNodeValue();
 				String defaultVal = varList.item(i).getAttributes().getNamedItem(TAG_DEFAULT).getNodeValue();
 				
-				FbnParameters param = new FbnParameters();
+				FbnParameter param = new FbnParameter();
 				param.setFbName(nameAttribute.split("\\.")[0]);
 				param.setParamName(nameAttribute.split("\\.")[1]);
 				param.setParamType(varType);
@@ -142,15 +142,28 @@ public class SlibFBNetwork {
 				this.paramsList.add(param);
 			}
 		}
+		assignParams();
 	}
 	
-	private void assignParams(String params) {
-		
-		if(!params.toLowerCase().equals(PARAMS_NULL)) {
+	/***
+	 * The order of parameters to be assigned to the original application is given in Slib FBN specs.
+	 * This function will process the params string from the secure link annotation and assign it to paramList in the
+	 * order given in the loaded FBN from Slib. In case there are fewer parameters passed in the annotation, the default values
+	 * of the parameters in the loaded FBN will be used.
+	 */
+	private void assignParams() {  
+		//Assign the , separated params
+		if(!params.toLowerCase().equals(PARAMS_NULL)) { 
 			String[] pList = params.split(PARAMS_SPLITTER);
 			
-			for(int i = 0; i < pList.length; i++) 
-				this.paramsList.get(i).setParamtVal(pList[i].trim());
+			for(int i = 0; i < this.paramsList.size(); i++) {
+				if(i >= pList.length) 
+					break;
+				String param = pList[i].trim();
+				if(param.equals(PARAMS_NULL))
+					break;
+				this.paramsList.get(i).setParamtVal(param);
+			}
 		}
 	}
 	
@@ -298,6 +311,14 @@ public class SlibFBNetwork {
 					rightDevFbNodes.add(allFBs.item(i));
 		}
 		return fbList;
+	}
+	
+	public String getDeviveFromFB(String fbName) {
+		if(setOfLeftDeviceFBs.contains(fbName))
+			return TAG_DEVICE_LEFT;
+		if(setOfRightDeviceFBs.contains(fbName))
+			return TAG_DEVICE_RIGHT;
+		return null;
 	}
 	
 	public NodeList getEventConnections() {
@@ -478,8 +499,12 @@ public NodeList getRightDeviceDataConnections() {
 		return outVarType;
 	}
 	
-	public String getParameter(int index) {
-		return paramsList.get(index).getParamVal();
+	public int getParamsCount() {
+		return paramsList.size();
+	}
+	
+	public FbnParameter getParameter(int index) {
+		return paramsList.get(index);
 	}
 
 	private void addToLeftDeviceSet(String fbName) {

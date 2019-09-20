@@ -1,11 +1,8 @@
 package securelinks;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
-import javax.swing.text.StyledEditorKit.ForegroundAction;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -20,7 +17,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.ls.DOMImplementationLS;
-import org.xml.sax.SAXException;
+
 
 /*
  * This class reads the .sys xml file for a system. 
@@ -28,7 +25,6 @@ import org.xml.sax.SAXException;
  */
 public class SysFileOperator {
 	
-	private final NullPointerException NullPointerException = null;
 	private final int FIRST_ELEMENT = 0;
 	private final String E_DATA_CONNECTIONS = "DataConnections";
 	private final String E_EVENT_CONNECTIONS = "EventConnections";
@@ -39,7 +35,9 @@ public class SysFileOperator {
 	private final String E_RESOURCE = "Resource";
 	private final String E_MAPPING = "Mapping";
 	private final String E_FB = "FB";
+	private final String E_PARAMETER = "Parameter";
 	private final String E_FBNETWORK = "FBNetwork";
+	private final String A_VALUE = "Value";
 	private final String A_SRC = "Source";
 	private final String A_DST = "Destination";
 	private final String A_NAME = "Name";
@@ -79,6 +77,66 @@ public class SysFileOperator {
 		} catch (Exception e) {
 			System.out.println("Exception caught by Secure Links: " + e.getMessage());
 		}
+	}
+	
+	public void addFBParameter(String device, String fbName, String fbParam, String paramVal) {
+		addFBParametersToApp(fbName, fbParam, paramVal);
+		addFBParamtersToDevice(device, fbName, fbParam, paramVal);
+	}
+	
+	private void addFBParametersToApp(String fbName, String fbParamName, String paramVal) {
+		Element app = getSelectedApplication(selectedApplication);
+		Element subapp = (Element) app.getElementsByTagName(E_SUB_APPLICATION).item(FIRST_ELEMENT);
+		NodeList fbList = subapp.getElementsByTagName(E_FB);
+		
+		for(int i = 0; i < fbList.getLength(); i ++) {
+			Node fb = fbList.item(i);
+			if(fb.getAttributes().getNamedItem(A_NAME).getNodeValue().equals(fbName)) {
+				addParameterNodeToFB(fb, fbParamName, paramVal);
+				break;
+			}
+		}
+	}
+	
+	private void addFBParamtersToDevice(String deviceName, String fbName, String fbParamName, String paramVal) {
+		Node dev = getDeviceNode(deviceName);
+		
+		Node fbNetwork = ((Element)dev).getElementsByTagName(E_FBNETWORK).item(FIRST_ELEMENT);
+		NodeList devFbConList = ((Element)fbNetwork).getElementsByTagName(E_FB);
+		
+		for(int i = 0; i < devFbConList.getLength(); i ++) {
+			Node fb = devFbConList.item(i);
+			if(fb.getAttributes().getNamedItem(A_NAME).getNodeValue().equals(fbName)) {
+				addParameterNodeToFB(fb, fbParamName, paramVal);
+				break;
+			}
+		}
+	}
+	
+	private void addParameterNodeToFB(Node fbNode, String paramName, String paramVal) {
+		NodeList fbParamsList = ((Element)fbNode).getElementsByTagName(E_PARAMETER);
+		Node param = null;
+		
+		for(int j = 0; j < fbParamsList.getLength(); j++) //check if the parameter already exists. if yes, then just update the value
+			if(fbParamsList.item(j).getAttributes().getNamedItem(A_NAME).getNodeValue().equals(paramName)) {
+				param = fbParamsList.item(j);
+				((Element)param).setAttribute(A_VALUE, paramVal);
+				break;
+			}
+		
+		if(param == null) { //if there is no existing parameter by this name, then create a new parameter node
+			param = createFBParameterElement(paramName, paramVal);
+			fbNode.appendChild(param);
+		}
+		//System.out.println(((DOMImplementationLS)system.getImplementation()).createLSSerializer().writeToString(fbNode));
+	}
+	
+	private Element createFBParameterElement(String fbParam, String paramVal) {
+		Element parameter = system.createElement(E_PARAMETER);
+		parameter.setAttribute(A_NAME, fbParam);
+		parameter.setAttribute(A_VALUE, paramVal);
+		
+		return parameter;
 	}
 	
 	public void addFBsfromSlibFBN(NodeList slibFBs) {
@@ -371,7 +429,6 @@ public class SysFileOperator {
 		mapping.setAttribute(A_FROM, fromVal);
 		mapping.setAttribute(A_TO, toVal);
 		Node refNode = system.getElementsByTagName(E_MAPPING).item(FIRST_ELEMENT);
-		//system.appendChild(mapping);
 		system.getDocumentElement().insertBefore(mapping, refNode);
 	}
 	

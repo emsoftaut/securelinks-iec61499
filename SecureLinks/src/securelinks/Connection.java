@@ -20,7 +20,7 @@ public class Connection {
 	private static SysFileOperator sysReaderWriter;
 	private static String selectedApp;
 	
-	private final String SECURE_LINK_REGEX = "@[sS][lL]\\s*\\((\\s*\\w*\\s*,\\s*\\w*\\s*,)\\s*\\w+\\s*\\)";
+	private final String SECURE_LINK_REGEX = "@[sS][lL]\\s*\\((\\s*\\w*\\s*,\\s*\\w*\\s*,)\\s*\\w+\\s*\\)"; reg ex seedha karo
 	
 	
 	public Connection() {
