@@ -162,6 +162,8 @@ public class SlibFBNetwork {
 				String param = pList[i].trim();
 				if(param.equals(PARAMS_NULL))
 					break;
+				//***TO-DO*** Check whether assignee parameter type matches the parameter from Slib FBN. It true, assign 
+				//else raise an error
 				this.paramsList.get(i).setParamtVal(param);
 			}
 		}

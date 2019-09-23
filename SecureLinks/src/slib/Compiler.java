@@ -8,6 +8,10 @@ import securelinks.SysFileOperator;
 public class Compiler {
 	
 	private final int PARAM_START_INDEX = 4;
+	private final int PARAM_REQUIRMENT_INDEX = 0;
+	private final int PARAM_FBN_INDEX = 1;
+	private final int PARAM_STRING_INDEX = 2;
+	private final String PARAM_SPLITTER = ",";
 	
 	private Connection connection;
 	
@@ -26,19 +30,19 @@ public class Compiler {
 		if(!conComment.isEmpty()) {
 			String sansWhiteSpaces = conComment.replaceAll("\\s+",""); // remove white spaces
 			String justThecommaSperatedString = sansWhiteSpaces.substring(PARAM_START_INDEX, sansWhiteSpaces.length() - 1);
-			this.requirement = justThecommaSperatedString.split(",")[0];
-			this.fbnName = justThecommaSperatedString.split(",")[1];
-			String [] a = justThecommaSperatedString.split(",", 3);
-			System.out.println(a);
+			this.requirement = justThecommaSperatedString.split(PARAM_SPLITTER)[PARAM_REQUIRMENT_INDEX];
+			this.fbnName = justThecommaSperatedString.split(PARAM_SPLITTER)[PARAM_FBN_INDEX];
+			this.params = justThecommaSperatedString.split(PARAM_SPLITTER, 3)[PARAM_STRING_INDEX];
 		}
 	}
 	
-	public void compile() throws Exception {
+	public boolean compile() throws Exception {
 		
 		//line 3 - We already have connections that are mapped on different devices.
 		//line 4 - Retrieve sl.sm from SLib
 		SlibFBNetwork sfbn = new SlibFBNetwork();
-		sfbn.instantiateFBN("SHA1", "abc, cde"); 
+		if(!sfbn.instantiateFBN(this.fbnName, this.params))
+			return false;
 		
 		SysFileOperator sysFileOp = open4DIACSysFile();
 		
@@ -71,6 +75,8 @@ public class Compiler {
 		assignParameters(sysFileOp, sfbn);
 		
 		sysFileOp.saveSysFile();
+		
+		return true;
 
 	}
 	

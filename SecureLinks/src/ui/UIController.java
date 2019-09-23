@@ -57,12 +57,14 @@ public class UIController {
 		Connection.UpdateConnections(conList);
 	}
 	
-	public void compileAction(Connection con) throws Exception {
+	public boolean compileAction(Connection con) throws Exception {
 		
 		if(con.isValidSecureLink(con)) {
 			Compiler compilerObj = new Compiler(con);
-			compilerObj.compile();
+			if(compilerObj.compile())
+				return true;
 		}
+			return false;
 	}
 	
 }

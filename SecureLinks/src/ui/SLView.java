@@ -6,11 +6,10 @@ import javax.swing.JDialog;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.osgi.framework.Bundle;
 
@@ -20,9 +19,6 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
@@ -42,6 +38,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 
 public class SLView extends JDialog {
 	
@@ -49,6 +46,7 @@ public class SLView extends JDialog {
 	private String sysFile;
 	private String selectedApp;
 	private List<Connection> conList;
+	private JPanel panelCenter;
 	
 	public SLView(String sysFile, String selectedApp, Shell shell) throws NullPointerException {
 		
@@ -71,7 +69,7 @@ public class SLView extends JDialog {
 		lblApplicationName.setFont(new Font("Calibri", Font.PLAIN, 16));
 		panelTopPanel.add(lblApplicationName);
 		
-		JPanel panelCenter = new JPanel(); 
+		panelCenter = new JPanel(); 
 		getContentPane().add(panelCenter, BorderLayout.CENTER);
 		panelCenter.setLayout(new BoxLayout(panelCenter, BoxLayout.Y_AXIS));
 
@@ -133,6 +131,8 @@ public class SLView extends JDialog {
 				
 				Connection con = conList.get(i);
 				
+				JCheckBox cb = new JCheckBox();
+				
 				JLabel labelFBOut = new JLabel();
 				labelFBOut.setText(con.getSourceFB() + "." + con.getSourceVariable());
 				labelFBOut.setFont(new Font("Calibri", Font.BOLD, 12));
@@ -149,22 +149,27 @@ public class SLView extends JDialog {
 				GridBagConstraints c = new GridBagConstraints();
 				
 				Box boxOutFB = createLeftBoxForConnections(labelFBOut);
+				
 				c.fill = GridBagConstraints.HORIZONTAL;
-				c.gridx = 0; c.gridy = 0; c.ipadx = 10;
-				panelCon.add(boxOutFB, c);
+				c.gridx = 0; c.gridy = 0; c.ipadx = 0; 
+				panelCon.add(cb, c);
 				
 				c.fill = GridBagConstraints.HORIZONTAL;
 				c.gridx = 1; c.gridy = 0; c.ipadx = 10;
+				panelCon.add(boxOutFB, c);
+				
+				c.fill = GridBagConstraints.HORIZONTAL;
+				c.gridx = 2; c.gridy = 0; c.ipadx = 10;
 				panelCon.add(labelArrow, c);
 				
 				Box boxInFB = createRightBoxForConnections(labelFBIn);
 				c.fill = GridBagConstraints.HORIZONTAL;
-				c.gridx = 2; c.gridy = 0; c.ipadx = 10;
+				c.gridx = 3; c.gridy = 0; c.ipadx = 10;
 				panelCon.add(boxInFB, c);
 				
 		
 				c.fill = GridBagConstraints.HORIZONTAL;
-				c.gridx = 3; c.gridy = 0; c.ipadx = 10;
+				c.gridx = 4; c.gridy = 0; c.ipadx = 10;
 				panelCon.add(addButton(panelCon, con), c);
 				
 				container.add(panelCon);
@@ -263,7 +268,7 @@ public class SLView extends JDialog {
 			
 			for(Connection c : conList) {
 				if(!c.getConnectionComment().isEmpty())
-					if(!Pattern.compile("@[sS][lL]\\s*\\((\\s*\\w*\\s*,\\s*\\w*\\s*,)\\s*\\w+\\s*\\)"). //Regex
+					if(!Pattern.compile(Connection.SECURE_LINK_REGEX). //Regex
 							matcher(c.getConnectionComment()).matches()) {
 						validSecureLinkString = false;
 						errCon = c;
@@ -299,12 +304,17 @@ public class SLView extends JDialog {
 	}
 	
 	private void compile(ActionEvent e) {
-		
+		int count = 0;
 		try {
 			UIController con = UIController.getInstance(sysFile, selectedApp);
-			con.compileAction(conList.get(0)); // compile one connection i.e. the first in the list
+			for(int i = 0; i < conList.size(); i++) {
+				if(getCheckBoxStatus(i)) {
+					if(con.compileAction(conList.get(i))) // compile one connection i.e. the first in the list
+						count++;
+				}
+			}
 			JOptionPane.showMessageDialog(((Component)e.getSource()).getParent().getParent(), 
-					"Link Complied", 
+					count + " link(s) Complied", 
 					"Operation done", 
 					JOptionPane.INFORMATION_MESSAGE); 
 		} catch (Exception e2) {
@@ -314,6 +324,16 @@ public class SLView extends JDialog {
 					JOptionPane.ERROR_MESSAGE);
 		}
 
+	}
+	
+	private boolean getCheckBoxStatus(int index) {
+		Component p = panelCenter.getComponent(index);
+		if(p instanceof JPanel) {
+			JCheckBox cb = (JCheckBox) ((JPanel)p).getComponent(0);
+			if(cb.isSelected())
+				return true;
+		}
+		return false;
 	}
 	
 	private Bundle getBundle() {
