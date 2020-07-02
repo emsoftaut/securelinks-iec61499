@@ -1,0 +1,54 @@
+REAL bagRectTopRightX = new REAL();
+REAL bagRectBottomRightX = new REAL();
+DINT tempX = new DINT();
+REAL bagRectRadius = new REAL(); //Halfthelengthofthediagonalinsidethebagrectangle
+REAL bagRectInternalAngle = new REAL(); //Theanglethediagonalmakeswiththepositivex-axisofthebag
+
+//System.out.println("Bag IN!!! and ModelHeadPtr = " + ModelHeadPtr.value + " ModelDSPtr = " + ModelDSPtr.value);
+
+if(((INT)BagModelPLCTrackStatus.value[ModelHeadPtr.value]).value==2){//ACTIVE ModelFull
+return;
+};
+
+if (ModelDSPtr.value<0) 
+{ //thisnewbagismoreDSthanlastmostDS...
+ModelDSPtr.value=(short)(ModelHeadPtr.value); //ThelocationwherethisTHINGwillbestored
+}
+else if ((EncCount.value-BagInOffset.value) < ((DINT)BagModelBagCenterX.value[ModelDSPtr.value]).value)
+{ //thisnewbagismoreDSthanlastmostDS...
+ModelDSPtr.value=(short)(ModelHeadPtr.value); //ThelocationwherethisTHINGwillbestored
+}
+
+
+((DINT)BagModelBagCenterX.value[ModelHeadPtr.value]).value=(int)(EncCount.value);
+((DINT)BagModelBagWidth.value[ModelHeadPtr.value]).value=(int)(BagInWidth.value);
+((DINT)BagModelBagCenterY.value[ModelHeadPtr.value]).value=(int)(0);
+((DINT)BagModelBagAngle.value[ModelHeadPtr.value]).value=(int)(BagInAngle.value);
+((DINT)BagModelLLCID.value[ModelHeadPtr.value]).value=(int)(BagInID.value);
+((DINT)BagModelBagLength.value[ModelHeadPtr.value]).value=(int)(BagInLength.value);
+((INT)BagModelPLCTrackStatus.value[ModelHeadPtr.value]).value=(short)(2); //ACTIVE
+
+ //Calculatethex-distancebetweenthemostdownstreampointofthebagminusthecenterpoint
+bagRectRadius.value=(float)Math.sqrt((BagInLength.value/2)*(BagInLength.value/2)+(BagInWidth.value/2)*(BagInWidth.value/2));
+bagRectInternalAngle.value=(float)Math.atan(BagInWidth.value/BagInLength.value);
+
+bagRectTopRightX.value=(bagRectRadius.value*(float)Math.cos(3.14*((((DINT)BagModelBagAngle.value[ModelHeadPtr.value]).value))/180+bagRectInternalAngle.value));
+bagRectBottomRightX.value=(bagRectRadius.value*(float)Math.cos(3.14*((((DINT)BagModelBagAngle.value[ModelHeadPtr.value]).value))/180-bagRectInternalAngle.value));
+
+
+if((BagInAngle.value<90)){
+((DINT)BagModelBagScalarProj.value[ModelHeadPtr.value]).value=(int)(bagRectBottomRightX.value);
+}
+else if((BagInAngle.value<180)){
+((DINT)BagModelBagScalarProj.value[ModelHeadPtr.value]).value=(int)(-1*bagRectTopRightX.value);
+}
+else if((BagInAngle.value<270)){
+((DINT)BagModelBagScalarProj.value[ModelHeadPtr.value]).value=(int)(-1*bagRectBottomRightX.value);
+}
+else if((BagInAngle.value<360)){
+((DINT)BagModelBagScalarProj.value[ModelHeadPtr.value]).value=(int)(bagRectTopRightX.value);
+};
+
+//Incrementthepointers
+ModelHeadPtr.value=(short)(ModelHeadPtr.value+1);
+ModelHeadPtr.value=(short)(ModelHeadPtr.value%20);

@@ -1,0 +1,18 @@
+ModelHeadPtr.value=(short)(0);
+ModelTailPtr.value=(short)(0);
+ModelDSPtr.value=(short)(-1);
+
+for(looper.value=(short)(0); looper.value<=19; looper.value++){
+((INT)BagModelPLCTrackStatus.value[looper.value]).value=(short)(0);
+};
+
+
+//TempPEPositions[0]).value=(short)(4500);
+//TempPEPositions[1]).value=(short)(2500);
+//TempPEPositions[2]).value=(short)(1500);
+
+if((AngularDisplacement.value!=0)){
+ConvRadius.value=(((ConvLength.value)*360)/(float)(2*3.14*(Math.abs((int)AngularDisplacement.value))));
+};
+
+//System.out.println("Conveyor Photoeyes Initialised");

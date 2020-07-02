@@ -1,0 +1,74 @@
+INT CopySourcePtr = new INT();
+INT CopyDestPtr = new INT();
+INT bagPtr = new INT();
+DINT upperBound = new DINT();//ULINT
+
+CopySourcePtr.value=-1;
+CopyDestPtr.value=-1;
+upperBound.value=ModelHeadPtr.value;
+
+if((ModelHeadPtr.value<ModelTailPtr.value))
+{
+	upperBound.value=(short)(upperBound.value+20);
+}
+
+CopyDestPtr.value=(short)(BagRemoveModelPtr.value);//Overwritethisbag
+if((CopyDestPtr.value==-1))
+{
+	return;
+}
+
+
+while(true)
+{
+//IsthistheMostDSbag?
+	if((CopyDestPtr.value==ModelTailPtr.value))
+	{
+		//Deletethemodelentry
+		((DINT)BagModelLLCID.value[CopyDestPtr.value]).value=(int)(-1);
+		//UpdateDSpointer
+		ModelTailPtr.value=(short)(ModelTailPtr.value+1);
+		ModelTailPtr.value=(short)(ModelTailPtr.value%20);
+		//RE-setModelDSPtr.value
+		ModelDSPtr.value=(short)(-1);
+		for(bagPtr.value=(short)((ModelTailPtr.value)); bagPtr.value<=upperBound.value; bagPtr.value++)
+		{
+			if((((DINT)BagModelLLCID.value[bagPtr.value]).value%20!=-1))
+			{
+				if((ModelDSPtr.value<0))
+				{//thisnewbagismoreDSthanlastmostDS...shufflearray
+					ModelDSPtr.value=(short)(bagPtr.value%20);
+				}
+				else if(((DINT)BagModelBagCenterX.value[bagPtr.value%20]).value<((DINT)BagModelBagCenterX.value[ModelDSPtr.value]).value)
+				{
+					ModelDSPtr.value=(short)(bagPtr.value%20);
+				}
+			}
+		}
+		break;
+	}
+	else
+	{
+		//CalculatetheCopySourcePtr
+		if((CopyDestPtr.value==0))
+		{
+			CopySourcePtr.value=(short)(20-1);//"Next entry is top"
+		}
+		else
+		{
+			CopySourcePtr.value=(short)((CopyDestPtr.value-1)%20);
+		}
+		//CopyModelData
+		((DINT)BagModelLLCID.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelLLCID.value[CopySourcePtr.value]).value);
+		((DINT)BagModelBagLength.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelBagLength.value[CopySourcePtr.value]).value);
+		((INT)BagModelPLCTrackStatus.value[CopyDestPtr.value]).value=(short)(((INT)BagModelPLCTrackStatus.value[CopySourcePtr.value]).value);
+		((DINT)BagModelBagWidth.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelBagWidth.value[CopySourcePtr.value]).value);
+		((DINT)BagModelBagAngle.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelBagAngle.value[CopySourcePtr.value]).value);
+		((DINT)BagModelBagCenterX.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelBagCenterX.value[CopySourcePtr.value]).value);
+		((DINT)BagModelBagCenterY.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelBagCenterY.value[CopySourcePtr.value]).value);
+		((DINT)BagModelBagScalarProj.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelBagScalarProj.value[CopySourcePtr.value]).value);
+
+		//nextmodelentry
+		CopyDestPtr.value=(short)(CopySourcePtr.value);
+	}
+}

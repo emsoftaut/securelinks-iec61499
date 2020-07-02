@@ -1,0 +1,18 @@
+forte_add_module(SLIBCRYPTO "FORTE Crypto Library")
+
+forte_add_subdirectory(LightWeight)
+forte_add_subdirectory(Standard)
+
+forte_add_sourcefile_hcpp(ByteToB)
+forte_add_sourcefile_hcpp(SlibConcat)
+forte_add_sourcefile_hcpp(SlibSplit)
+forte_add_sourcefile_hcpp(SlibMux)
+
+forte_add_sourcefile_hcpp(SlibSlipt16_1024)
+forte_add_sourcefile_hcpp(SlibConcat16_1024)
+
+forte_add_sourcefile_hcpp(SlibIntToByteArray)
+forte_add_sourcefile_hcpp(SlibBToI)
+forte_add_sourcefile_hcpp(SlibSToB)
+forte_add_sourcefile_hcpp(SlibTimeCalcs)
+

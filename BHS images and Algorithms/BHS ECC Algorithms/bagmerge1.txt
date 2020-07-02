@@ -1,0 +1,53 @@
+REAL bagRectTopRightX = new REAL();
+REAL bagRectBottomRightX = new REAL();
+DINT tempX = new DINT();
+REAL bagRectRadius = new REAL(); //Halfthelengthofthediagonalinsidethebagrectangle
+REAL bagRectInternalAngle = new REAL(); //Theanglethediagonalmakeswiththepositivex-axisofthebag
+
+//System.out.println("BagMerge1!!");
+
+if(((INT)BagModelPLCTrackStatus.value[ModelHeadPtr.value]).value==2){ //ACTIVE ModelFull
+return;
+};
+
+if(ModelDSPtr.value<0)
+{
+ModelDSPtr.value=(short)(ModelHeadPtr.value); //ThelocationwherethisTHINGwillbestored
+Status.value= (new String("NewmostDSbag")).getBytes();;
+}
+else if(((EncCount.value-(((DINT)MergePositions.value[0]).value))<((DINT)BagModelBagCenterX.value[ModelDSPtr.value]).value)){ //thisnewbagismoreDSthanlastmostDS...
+ModelDSPtr.value=(short)(ModelHeadPtr.value); //ThelocationwherethisTHINGwillbestored
+Status.value= (new String("NewmostDSbag")).getBytes();;
+};
+
+((DINT)BagModelBagCenterX.value[ModelHeadPtr.value]).value=(int)(EncCount.value-((DINT)MergePositions.value[0]).value);
+((DINT)BagModelBagWidth.value[ModelHeadPtr.value]).value=(int)(BagMerge1Width.value);
+((DINT)BagModelBagCenterY.value[ModelHeadPtr.value]).value=(int)(0);
+((DINT)BagModelBagAngle.value[ModelHeadPtr.value]).value=(int)(BagMerge1Angle.value);
+((DINT)BagModelLLCID.value[ModelHeadPtr.value]).value=(int)(BagMerge1ID.value);
+((DINT)BagModelBagLength.value[ModelHeadPtr.value]).value=(int)(BagMerge1Length.value);
+((INT)BagModelPLCTrackStatus.value[ModelHeadPtr.value]).value=(short)(2); //ACTIVE
+
+//Calculatethex-distancebetweenthemostdownstreampointofthebagminusthecenterpoint
+bagRectRadius.value= (float)Math.sqrt(((BagMerge1Length.value/2)*(BagMerge1Length.value/2))+((BagMerge1Width.value/2)*(BagMerge1Width.value/2)));
+bagRectInternalAngle.value=(float)Math.atan(BagMerge1Width.value/BagMerge1Length.value);
+
+bagRectTopRightX.value=(bagRectRadius.value*(float)Math.cos(3.14*((((DINT)BagModelBagAngle.value[ModelHeadPtr.value]).value))/180+bagRectInternalAngle.value));
+bagRectBottomRightX.value=(bagRectRadius.value*(float)Math.cos(3.14*((((DINT)BagModelBagAngle.value[ModelHeadPtr.value]).value))/180-bagRectInternalAngle.value));
+
+if((BagInAngle.value<90)){
+((DINT)BagModelBagScalarProj.value[ModelHeadPtr.value]).value=(int)(bagRectBottomRightX.value);
+}
+else if((BagInAngle.value<180)){
+((DINT)BagModelBagScalarProj.value[ModelHeadPtr.value]).value=(int)(-1*bagRectTopRightX.value);
+}
+else if((BagInAngle.value<270)){
+((DINT)BagModelBagScalarProj.value[ModelHeadPtr.value]).value=(int)(-1*bagRectBottomRightX.value);
+}
+else if((BagInAngle.value<360)){
+((DINT)BagModelBagScalarProj.value[ModelHeadPtr.value]).value=(int)(bagRectTopRightX.value);
+};
+
+//Increment
+ModelHeadPtr.value=(short)(ModelHeadPtr.value+1);
+ModelHeadPtr.value=(short)(ModelHeadPtr.value%20);

@@ -1,0 +1,112 @@
+INT upperLimit = new INT();
+INT bagPtr = new INT();
+INT DivID = new INT();
+DINT tempOrd = new DINT(); //ULINT
+INT CopySourcePtr = new INT();
+INT CopyDestPtr = new INT();
+
+//System.out.println("In CheckDiverters");
+
+DINT tempMostDS = new DINT();
+DINT tempMostUS = new DINT();
+
+
+upperLimit.value=ModelHeadPtr.value;
+DivID.value=0;
+/*
+EncCount.value-BagOrd=(int)(Position
+|
+EncCount.value-Position=(int)(BagOrd
+(sowegetEncCount.value-PosONCE..&comparewithbagords)
+*/
+tempOrd.value=0;// Special*ORDINATEofdiverter(EncCount.value-Position)
+/*//if(thediverterisactive
+checkupperLimit*/
+if(((ModelHeadPtr.value)<(ModelTailPtr.value)))
+{
+	upperLimit.value=(short)(upperLimit.value+20);//Lengthofbagarray
+}
+
+while(DivID.value<4)
+{
+	if((((DINT)DivertPositions.value[DivID.value]).value>0&((BOOL)DiverterStatus.value[DivID.value]).value))
+	{//configured&'active'//Statuses+1becauseitalsocontainsExitDev0whichisrunout
+		tempOrd.value=EncCount.value-((DINT)DivertPositions.value[DivID.value]).value;
+		//Anybagsthatintersect/cross'DiverterPosition'isdiverted(assumeonlyonebagperanyONEtick)
+		for(bagPtr.value=(short)((ModelTailPtr.value)); bagPtr.value<=upperLimit.value-1; bagPtr.value++)
+		{
+			//CalculatethemostDS&USpositionofthebag
+			tempMostDS.value=(((DINT)BagModelBagCenterX.value[bagPtr.value%20]).value+((DINT)BagModelBagScalarProj.value[bagPtr.value%20]).value);
+			tempMostUS.value=(((DINT)BagModelBagCenterX.value[bagPtr.value%20]).value-((DINT)BagModelBagScalarProj.value[bagPtr.value%20]).value);
+
+			if(((tempMostUS.value>=tempOrd.value)&(tempMostDS.value<=tempOrd.value)))
+			{
+				/*thisBagINTERSECTS!!!
+				setaflag*///
+				BagDiverted.value=true;
+				BagDivertID.value=(int)(((DINT)BagModelLLCID.value[bagPtr.value%20]).value);
+				BagDivertLength.value=(int)(((DINT)BagModelBagLength.value[bagPtr.value%20]).value);
+				//2010-07-05:HandoverOffset(howfarINFRONTofDiverterthebagis)
+				BagDivertOffset.value=(int)(tempOrd.value-((DINT)BagModelBagCenterX.value[bagPtr.value%20]).value);
+				//Unlikenormalexit...weIMEDIATELYremovethebagfromourmodel(itwill!passanymorePEs)
+				//ConveyorModel_CM_RemoveBag(me,BagDivertID,bagPtr.value%20);
+				CopyDestPtr.value=(short)(bagPtr.value%20);//Overwritethisbag
+				while(true)
+				{
+					//IsthistheMostDSbag?
+					if((CopyDestPtr.value==ModelTailPtr.value))
+					{
+						//Deletethemodelentry
+						((DINT)BagModelLLCID.value[CopyDestPtr.value]).value=(int)(-1);
+						//UpdateDSpointer
+						ModelTailPtr.value=(short)(ModelTailPtr.value+1);
+						ModelTailPtr.value=(short)(ModelTailPtr.value%20);
+						//RE-setModelDSPtr.value
+						ModelDSPtr.value=(short)(-1);
+						for(bagPtr.value=(short)((ModelTailPtr.value)); bagPtr.value<=upperLimit.value-1; bagPtr.value++)
+						{
+							if((((DINT)BagModelLLCID.value[bagPtr.value]).value%20!=-1))
+							{
+								if((ModelDSPtr.value<0))
+								{//thisnewbagismoreDSthanlastmostDS...shufflearray
+									ModelDSPtr.value=(short)(bagPtr.value%20);
+								}
+								else if(((DINT)BagModelBagCenterX.value[bagPtr.value%20]).value<((DINT)BagModelBagCenterX.value[ModelDSPtr.value]).value)
+								{
+									ModelDSPtr.value=(short)(bagPtr.value%20);
+								}
+							}
+						}
+						break;
+					}
+					else
+					{
+						//CalculatetheCopySourcePtr
+						if((CopyDestPtr.value==0))
+						{
+							CopySourcePtr.value=20-1;//"Next entry is top"
+						}
+						else
+						{
+							CopySourcePtr.value=(short)((CopyDestPtr.value-1)%20);
+						}
+
+						//CopyModelData
+						((DINT)BagModelLLCID.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelLLCID.value[CopySourcePtr.value]).value);
+						((DINT)BagModelBagLength.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelBagLength.value[CopySourcePtr.value]).value);
+						((INT)BagModelPLCTrackStatus.value[CopyDestPtr.value]).value=(short)(((INT)BagModelPLCTrackStatus.value[CopySourcePtr.value]).value);
+						((DINT)BagModelBagWidth.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelBagWidth.value[CopySourcePtr.value]).value);
+						((DINT)BagModelBagAngle.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelBagAngle.value[CopySourcePtr.value]).value);
+						((DINT)BagModelBagCenterX.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelBagCenterX.value[CopySourcePtr.value]).value);
+						((DINT)BagModelBagCenterY.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelBagCenterY.value[CopySourcePtr.value]).value);
+						((DINT)BagModelBagScalarProj.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelBagScalarProj.value[CopySourcePtr.value]).value);
+						//nextmodelentry
+						CopyDestPtr.value=CopySourcePtr.value;
+					}
+				}
+				break;
+			}
+		}
+	}
+	DivID.value++;
+}

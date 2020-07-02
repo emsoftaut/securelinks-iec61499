@@ -1,0 +1,228 @@
+//System.out.println("In Tick");
+INT index = new INT();
+INT bagPtr =  new INT();
+INT upperLimit = new INT();
+INT pePtr = new INT();
+DINT tempOrd = new DINT();//ULINTtempOrdinateof'current'PE|diverter(EncCount.value-Position)(seeCheckDivertfor(explination)
+INT CopySourcePtr = new INT();
+INT CopyDestPtr = new INT();
+
+DINT tempMostDS = new DINT();
+DINT tempMostUS = new DINT();
+DINT tempCount = new DINT();
+
+
+bagPtr.value=ModelTailPtr.value;
+upperLimit.value=ModelHeadPtr.value;
+
+pePtr.value=0; // Pointerin((DINT)PEPositions.valueARRAY
+tempOrd.value=0;
+
+//CLEAROUTPUTS
+BagExited.value=false;
+BagDiverted.value=false;
+BagOutID.value=(int)(0);
+BagOutLength.value=(int)(0);
+BagDivertID.value=(int)(0);
+BagDivertLength.value=(int)(0);
+//ClearDetects!!!!!!!
+((BOOL)PEDetects.value[0]).value=true;
+((BOOL)PEDetects.value[1]).value=true;
+((BOOL)PEDetects.value[2]).value=true;
+((BOOL)PEDetects.value[3]).value=true;
+((BOOL)PEDetects.value[4]).value=true;
+((BOOL)PEDetects.value[5]).value=true;
+
+
+//NOOOOO"Loop through all bags... increment Positions?"
+//usingordinates...assumingbagsdontslipwewontneed; ModelTailPtr.value<=changetheirUS/DSOrd
+if(ModelTailPtr.value>ModelHeadPtr.value)
+{
+	upperLimit.value=(short)(ModelHeadPtr.value+20); //sizeofBagARRAY
+};
+
+for(pePtr.value=0; pePtr.value<=PECount.value-1; pePtr.value++)
+{
+	tempOrd.value=(EncCount.value-(((DINT)PEPositions.value[(int)pePtr.value]).value));
+	for(bagPtr.value= ModelTailPtr.value; bagPtr.value<=upperLimit.value-1; bagPtr.value++)
+	{
+		//CalculatethemostDS&USpositionofthebag
+		tempMostDS.value = (((DINT)(BagModelBagCenterX.value[bagPtr.value%20])).value + ((DINT)BagModelBagScalarProj.value[bagPtr.value%20]).value);
+		tempMostUS.value = (((DINT)BagModelBagCenterX.value[bagPtr.value %20]).value-((DINT)BagModelBagScalarProj.value[bagPtr.value%20]).value);
+		if((tempMostDS.value>=tempOrd.value)&(tempMostUS.value<=tempOrd.value))
+		{
+			//thisPEneeds; ModelTailPtr.value<='detect'
+			//((BOOL)PEDetects.value[pePtr.value]).value=true;
+			((BOOL)PEDetects.value[pePtr.value]).value=false;
+
+			break; //onlyonebagcanintersect...
+		}
+	}
+}
+
+/*CheckmostDSBag..if(passedConvLength....valuestartcontinueprocess
+Everythingmodelledasastraightconveyor&bagstrackedusingcenterx,y+angle
+TODO:if(array!EMPTY */
+if((ModelDSPtr.value!=-1))
+{
+	//Ensurethebaghas!alreadyexited
+	if((((INT)BagModelPLCTrackStatus.value[ModelDSPtr.value]).value==2))
+	{//ACTIVE
+		//'continue'thebagwhenthecenterofthebagreachestheendofthisconveyor
+		if((EncCount.value>=(((DINT)BagModelBagCenterX.value[ModelDSPtr.value]).value+ConvLength.value)))
+		{//>*==*soassoonascenterpointisatDS'tip',itisalsoatmostUSendofDSConv
+			//Status.value='Bagcenterpointexited';
+
+			//Thebaghas'exited'i.e.belongs; ModelTailPtr.value<=thenextconveyorinanobjectownershipsense
+			BagOutID.value=(((DINT)BagModelLLCID.value[ModelDSPtr.value]).value);
+			BagOutLength.value=(int)(((DINT)BagModelBagLength.value[ModelDSPtr.value]).value);
+			BagOutWidth.value=(int)(((DINT)BagModelBagWidth.value[ModelDSPtr.value]).value);
+
+			BagOutOffset.value=(int)(((DINT)BagModelBagCenterY.value[ModelDSPtr.value]).value);//y-axisoffset,zerofor(now
+			BagOutAngle.value=(int)(((DINT)BagModelBagAngle.value[ModelDSPtr.value]).value);
+
+			BagExited.value=true;
+			((INT)BagModelPLCTrackStatus.value[ModelDSPtr.value]).value=(short)(3);
+		}
+	}
+	else if((((INT)BagModelPLCTrackStatus.value[ModelDSPtr.value]).value==3))
+	{//COMPLETED//Centerhasexited..justwaitingonmostUSpoint
+		//Re-calculatethemostUSx-position
+		tempMostUS.value=(((DINT)BagModelBagCenterX.value[ModelDSPtr.value]).value-((DINT)BagModelBagScalarProj.value[ModelDSPtr.value]).value);
+		if(((EncCount.value-tempMostUS.value)>ConvLength.value))
+		{
+			//Justremovefrommodel
+			((INT)BagModelPLCTrackStatus.value[ModelDSPtr.value]).value=(short)(0);
+			/*Status.value='Bagremoved';
+			StatusData1.value=(int)((EncCount.value-BagModelBagUSOrd[ModelDSPtr.value]).value));*/
+			//ConveyorModel_CM_RemoveBag(me,((DINT)BagModelLLCID.value[ModelDSPtr.value]).value,ModelDSPtr);
+			CopyDestPtr.value=(short)(ModelDSPtr.value);//Overwritethisbag
+			while(true) 
+			{
+				BagOutAngle.value++;
+				//IsthistheMostDSbag?
+				if((CopyDestPtr.value==ModelTailPtr.value))
+				{
+					//Deletethemodelentry
+					((DINT)BagModelLLCID.value[CopyDestPtr.value]).value=(int)(-1);
+					//UpdateDSpointer
+					ModelTailPtr.value=(short)(ModelTailPtr.value+1);
+					ModelTailPtr.value=(short)(ModelTailPtr.value%20);
+					//RE-setModelDSPtr.value
+					ModelDSPtr.value=(short)(-1);
+					//FindthemostDSbag; BagOutAngle.value<=settheModelDSPtr.value
+					for(bagPtr.value=(short)((ModelTailPtr.value)); bagPtr.value<=upperLimit.value-1; bagPtr.value++)
+					{
+						if((((DINT)BagModelLLCID.value[bagPtr.value]).value%20!=-1))
+						{
+							if((ModelDSPtr.value<0))
+							{ //thisnewbagismoreDSthanlastmostDS...shufflearray
+								ModelDSPtr.value=(short)(bagPtr.value%20);
+							}
+							else if(((DINT)BagModelBagCenterX.value[bagPtr.value%20]).value<((DINT)BagModelBagCenterX.value[ModelDSPtr.value]).value)
+							{
+								ModelDSPtr.value=(short)(bagPtr.value%20);
+							}
+						}
+					}
+					Status.value= (new String("TICK most DS bag")).getBytes();
+					break;
+				}
+				else
+				{
+					//CalculatetheCopySourcePtr
+					if((CopyDestPtr.value==0))
+					{
+						CopySourcePtr.value=20-1;//"Next entry is top"
+					}
+					else
+					{
+						CopySourcePtr.value=(short)((CopyDestPtr.value-1)%20);
+					}
+					//CopyModelData
+					((DINT)BagModelLLCID.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelLLCID.value[CopySourcePtr.value]).value);
+					((DINT)BagModelBagLength.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelBagLength.value[CopySourcePtr.value]).value);
+					((INT)BagModelPLCTrackStatus.value[CopyDestPtr.value]).value=(short)(((INT)BagModelPLCTrackStatus.value[CopySourcePtr.value]).value);
+					((DINT)BagModelBagWidth.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelBagWidth.value[CopySourcePtr.value]).value);
+					((DINT)BagModelBagAngle.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelBagAngle.value[CopySourcePtr.value]).value);
+					((DINT)BagModelBagCenterX.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelBagCenterX.value[CopySourcePtr.value]).value);
+					((DINT)BagModelBagCenterY.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelBagCenterY.value[CopySourcePtr.value]).value);
+					((DINT)BagModelBagScalarProj.value[CopyDestPtr.value]).value=(int)(((DINT)BagModelBagScalarProj.value[CopySourcePtr.value]).value);
+					//nextmodelentry
+					CopyDestPtr.value=(short)(CopySourcePtr.value);
+				}
+			}
+			//ENDREMOVEINLINE
+			upperLimit.value=(short)(ModelHeadPtr.value);//REDOupperLimit.value(mayhavechanged)
+			if((ModelTailPtr.value>ModelHeadPtr.value))
+			{
+				upperLimit.value=(short)(ModelHeadPtr.value+20);//sizeofBagarray
+			}
+		}
+	}
+}
+//Transformstraightconveyordisplacement; ModelTailPtr.value<=curvedconveyordisplacement
+for(bagPtr.value=(short)(ModelTailPtr.value); bagPtr.value<=upperLimit.value-1; bagPtr.value++)
+{
+	if((AngularDisplacement.value!=0))
+	{
+		((REAL)currentBagAngle.value[bagPtr.value]).value=(float)(((EncCount.value-((DINT)BagModelBagCenterX.value[bagPtr.value%20]).value)/(ConvLength.value))*(AngularDisplacement.value));
+		((DINT)BagModelBagCenterXT.value[bagPtr.value%20]).value=(int)((ConvRadius.value*Math.sin((((REAL)currentBagAngle.value[bagPtr.value]).value/180)*3.14)));
+		((DINT)BagModelBagCenterYT.value[bagPtr.value%20]).value=(int)((ConvRadius.value-ConvRadius.value*Math.cos((((REAL)currentBagAngle.value[bagPtr.value]).value/180)*3.14)));
+		//However,if(thebagisleavingtheconveyor,maybe){otherstuff,likegoinastraightlineafterpassingconvLength
+	}
+	else
+	{
+	/*(
+	else{thisisastraightline*/
+	((DINT)BagModelBagCenterXT.value[bagPtr.value%20]).value=(int)(EncCount.value-((DINT)BagModelBagCenterX.value[bagPtr.value%20]).value);
+	((DINT)BagModelBagCenterYT.value[bagPtr.value%20]).value=(int)(((DINT)BagModelBagCenterY.value[bagPtr.value%20]).value);
+	}
+	}
+
+	//SetVisData
+	BagCount.value=(short)(upperLimit.value-ModelTailPtr.value);
+	bagPtr.value=(short)(ModelTailPtr.value);
+	//cleararrays
+	for(bagPtr.value=(short)(0); bagPtr.value<=19; bagPtr.value++)
+	{
+	((INT)BagIDData.value[bagPtr.value]).value=(short)(0);
+	((DINT)BagXPosData.value[bagPtr.value]).value=0;
+	((INT)BagLengthData.value[bagPtr.value]).value=(short)(0);
+	}
+
+	bagPtr.value=(short)(ModelTailPtr.value);
+	for(index.value=(short)(0); index.value<=19; index.value++)
+	{
+	if((bagPtr.value>=upperLimit.value))
+	{
+	break;
+	};
+
+	((DINT)BagYPosData.value[index.value]).value=(int)(((DINT)BagModelBagCenterYT.value[bagPtr.value%20]).value);
+	((DINT)BagXPosData.value[index.value]).value=(int)(((DINT)BagModelBagCenterXT.value[bagPtr.value%20]).value)+1;
+	((INT)BagAngleData.value[index.value]).value=(short)((((REAL)currentBagAngle.value[bagPtr.value%20]).value)+(((DINT)BagModelBagAngle.value[bagPtr.value%20]).value));
+	((INT)BagLengthData.value[index.value]).value=(short)((((DINT)BagModelBagLength.value[bagPtr.value%20]).value));
+	//((INT)BagWidthData.value[index.value]).value=(short)((((DINT)BagModelBagWidth.value[bagPtr.value%20]).value));
+	((INT)BagIDData.value[index.value]).value=(short)((((DINT)BagModelLLCID.value[bagPtr.value%20]).value));
+
+	bagPtr.value++;
+	};
+
+	//Tempfixfor(non-blankingarrays
+	if((BagCount.value==0))
+	{
+	((DINT)BagYPosData.value[0]).value=(int)(0);
+	((DINT)BagXPosData.value[0]).value=0;
+	((INT)BagAngleData.value[0]).value=(short)(0);
+	((INT)BagLengthData.value[0]).value=(short)(0);
+	//((INT)BagWidthData.value[0]).value=(short)(0);
+	((INT)BagIDData.value[0]).value=(short)(0);
+	}
+	
+}
+//TEMPUN-ARRAY
+Out_PC.value=((BOOL)PEDetects.value[0]).value;
+//System.out.println("PE SET = " + ((BOOL)PEDetects.value[0]).value + Out_PC.value);
+Out_P2.value=((BOOL)PEDetects.value[1]).value;
+Out_P3.value=((BOOL)PEDetects.value[2]).value;

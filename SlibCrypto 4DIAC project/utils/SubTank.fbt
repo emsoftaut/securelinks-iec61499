@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE FBType SYSTEM "http://www.holobloc.com/xml/LibraryElement.dtd">
+<FBType Comment="Basic Function Block Type" Name="SubTank">
+  <Identification Standard="61499-2"/>
+  <VersionInfo Author="4DIAC-IDE" Date="2019-06-19" Organization="4DIAC-Consortium" Version="0.0"/>
+  <InterfaceList>
+    <EventInputs>
+      <Event Comment="Initialization Request" Name="INIT" Type="Event">
+        <With Var="OV1"/>
+        <With Var="VS"/>
+        <With Var="FS2"/>
+        <With Var="InReq"/>
+      </Event>
+      <Event Comment="In Flow Request" Name="IR" Type="Event">
+        <With Var="OV1"/>
+        <With Var="InReq"/>
+      </Event>
+    </EventInputs>
+    <EventOutputs>
+      <Event Comment="Initialization Confirm" Name="INITO" Type="Event">
+        <With Var="MM"/>
+        <With Var="IV1"/>
+        <With Var="ViscS"/>
+        <With Var="OV1Out"/>
+        <With Var="VSOut"/>
+        <With Var="FSOut"/>
+        <With Var="InRe"/>
+      </Event>
+      <Event Comment="Execution Confirmation" Name="CNF" Type="Event">
+        <With Var="MM"/>
+        <With Var="IV1"/>
+        <With Var="ViscS"/>
+        <With Var="OV1Out"/>
+        <With Var="VSOut"/>
+        <With Var="FSOut"/>
+        <With Var="InRe"/>
+      </Event>
+      <Event Comment="" Name="Visc" Type="Event">
+        <With Var="ViscS"/>
+      </Event>
+    </EventOutputs>
+    <InputVars>
+      <VarDeclaration Comment="Outlet Valve" Name="OV1" Type="BOOL"/>
+      <VarDeclaration Comment="Viscosity Sensor" Name="VS" Type="INT"/>
+      <VarDeclaration Comment="Fluid Level Sensor" Name="FS2" Type="INT"/>
+      <VarDeclaration Comment="Inlet Request" Name="InReq" Type="INT"/>
+    </InputVars>
+    <OutputVars>
+      <VarDeclaration Comment="Mixer Motor" Name="MM" Type="BOOL"/>
+      <VarDeclaration Comment="Inlet Valve" Name="IV1" Type="BOOL"/>
+      <VarDeclaration Comment="" Name="OV1Out" Type="BOOL"/>
+      <VarDeclaration Comment="" Name="VSOut" Type="INT"/>
+      <VarDeclaration Comment="" Name="FSOut" Type="INT"/>
+      <VarDeclaration Comment="" Name="InRe" Type="BOOL"/>
+      <VarDeclaration Comment="Viscosity Status" Name="ViscS" Type="INT"/>
+    </OutputVars>
+  </InterfaceList>
+  <BasicFB>
+    <ECC>
+      <ECState Comment="Initial State" Name="START" x="550.0" y="425.0"/>
+      <ECState Comment="Initialization" Name="INIT" x="920.0" y="140.0">
+        <ECAction Algorithm="INIT" Output="INITO"/>
+      </ECState>
+      <ECState Comment="Normal execution" Name="REQ" x="100.0" y="1400.0">
+        <ECAction Algorithm="checkVisc" Output="CNF"/>
+      </ECState>
+      <ECTransition Comment="" Condition="INIT" Destination="INIT" Source="START" x="920.0" y="425.0"/>
+      <ECTransition Comment="" Condition="1" Destination="START" Source="INIT" x="550.0" y="140.0"/>
+      <ECTransition Comment="" Condition="IR" Destination="REQ" Source="START" x="550.0" y="600.0"/>
+      <ECTransition Comment="" Condition="1" Destination="START" Source="REQ" x="215.0" y="425.0"/>
+    </ECC>
+    <Algorithm Comment="Initialization algorithm" Name="INIT">
+      <ST Text=""/>
+    </Algorithm>
+    <Algorithm Comment="Normally executed algorithm" Name="checkVisc">
+      <ST Text="IF VS &lt; 32 THEN&#13;&#10;&#9;ViscS := 1;&#13;&#10;ELSE&#13;&#10;&#9;ViscS := 0;&#13;&#10;END_IF;"/>
+    </Algorithm>
+  </BasicFB>
+</FBType>

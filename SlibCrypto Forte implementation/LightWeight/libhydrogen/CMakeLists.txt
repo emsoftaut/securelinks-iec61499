@@ -1,0 +1,20 @@
+set(LIBHYDROGEN_DIR "/home/author/Documents/forteSlib/org.eclipse.4diac.forte/src/modules/SlibCrypto/LightWeight/libhydrogen" CACHE PATH "LibHydrogen Library Directory")
+
+forte_add_module(LIBHYDROGEN "FB implementation of libhydrogen functions")
+
+forte_add_sourcefile_hcpp(HydroKeyGen)
+forte_add_sourcefile_hcpp(HydroKXKeyGen)
+forte_add_sourcefile_hcpp(HydroEncrypt)
+forte_add_sourcefile_hcpp(HydroDecrypt)
+forte_add_sourcefile_hcpp(HydroHash)
+forte_add_sourcefile_hcpp(HydroSignKeyGen)
+forte_add_sourcefile_hcpp(HydroSignCreate)
+forte_add_sourcefile_hcpp(HydroSignVerify)
+forte_add_sourcefile_hcpp(HydroGenerateSessionKeyClient)
+forte_add_sourcefile_hcpp(HydroGenerateSessionKeyServer)
+forte_add_sourcefile_hcpp(HydroSecretBoxProbeCreate)
+forte_add_sourcefile_hcpp(HydroSecretBoxProbeVerify)
+
+forte_add_link_directories(${LIBHYDROGEN_DIR})
+
+forte_add_link_library(libhydrogen.a)
